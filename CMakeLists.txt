@@ -20,17 +20,21 @@ FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Core Widgets Gui OpenGL)
 
 SET(SCULPTOR3D_SRCS
 	src/main.cpp
+	src/view/viewGLwidget.cpp
 )
 
-#SET(SCULPTOR3D_HDRS
-#)
+SET(SCULPTOR3D_HDRS
+	src/view/viewGLwidget.h
+)
 
 ADD_EXECUTABLE( ${CMAKE_PROJECT_NAME} WIN32
   ${SCULPTOR3D_SRCS}
+  ${SCULPTOR3D_HDRS}
 )
 
 target_link_libraries( ${CMAKE_PROJECT_NAME}
   Qt5::Core
   Qt5::Widgets  
-  Qt5::Gui  
+  Qt5::Gui
+  Qt5::OpenGL
 )
