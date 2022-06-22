@@ -32,6 +32,10 @@ ADD_EXECUTABLE( ${CMAKE_PROJECT_NAME} WIN32
   ${SCULPTOR3D_HDRS}
 )
 
+INCLUDE_DIRECTORIES(
+	D:/projects/Sculptor3D/Sculptor3D/resources
+)
+
 target_link_libraries( ${CMAKE_PROJECT_NAME}
   Qt5::Core
   Qt5::Widgets  
