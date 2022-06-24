@@ -3,20 +3,20 @@
 ViewGLWidget::ViewGLWidget(QWidget *parent) : 
 	QOpenGLWidget(parent)
 {
-	connect(&m_timer, &QTimer::timeout, this, [this]() 
+	/*connect(&m_timer, &QTimer::timeout, this, [this]() 
 	{
 		rotate += 1;
 		if (isVisible()) {
 			update();
 		}
 	});
-	m_timer.setInterval(50);
+	m_timer.setInterval(50);*/
 }
 
 ViewGLWidget::~ViewGLWidget()
 {
-	if (!isValid())
-		return;
+	/*if (!isValid())
+		return;*/
 	makeCurrent();
 	m_vbo.destroy();
 	m_lightingVao.destroy();

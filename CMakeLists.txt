@@ -21,10 +21,12 @@ FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Core Widgets Gui OpenGL)
 SET(SCULPTOR3D_SRCS
 	src/main.cpp
 	src/view/viewGLwidget.cpp
+	src/utility/makeGeometries.cpp
 )
 
 SET(SCULPTOR3D_HDRS
 	src/view/viewGLwidget.h
+	src/utility/makeGeometries.h
 )
 
 ADD_EXECUTABLE( ${CMAKE_PROJECT_NAME} WIN32
