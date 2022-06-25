@@ -34,7 +34,5 @@ private:
 	QOpenGLBuffer m_vbo;
 	QOpenGLTexture *diffuseMap{ nullptr };
 	QOpenGLTexture *specularMap{ nullptr };
-	QTimer m_timer;
-	int rotate{ 0 };
 
 };

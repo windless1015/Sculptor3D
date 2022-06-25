@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>shader/lampShader.frag</file>
+        <file>shader/lampShader.vert</file>
+		<file>shader/lightShader.frag</file>
+        <file>shader/lightShader.vert</file>
+		<file>container2_specular.png</file>
+		<file>container2.png</file>
+    </qresource>
+</RCC>

@@ -3,20 +3,10 @@
 ViewGLWidget::ViewGLWidget(QWidget *parent) : 
 	QOpenGLWidget(parent)
 {
-	/*connect(&m_timer, &QTimer::timeout, this, [this]() 
-	{
-		rotate += 1;
-		if (isVisible()) {
-			update();
-		}
-	});
-	m_timer.setInterval(50);*/
 }
 
 ViewGLWidget::~ViewGLWidget()
 {
-	/*if (!isValid())
-		return;*/
 	makeCurrent();
 	m_vbo.destroy();
 	m_lightingVao.destroy();
@@ -105,9 +95,8 @@ void ViewGLWidget::initializeGL()
 	m_lampVao.release();
 
 	//纹理
-	//diffuseMap = initTexture(":/container2.png");
-	diffuseMap = initTexture("D:/projects/Sculptor3D/Sculptor3D/resources/container2.png");
-	specularMap = initTexture("D:/projects/Sculptor3D/Sculptor3D/resources/container2_specular.png");
+	diffuseMap = initTexture(":/container2.png");
+	specularMap = initTexture(":/container2_specular.png");
 	//shader configuration
 	m_lightingShader.bind();
 	m_lightingShader.setUniformValue("material.diffuse", 0);
@@ -117,7 +106,7 @@ void ViewGLWidget::initializeGL()
 	//m_timer.start();
 }
 
-//绘制多个盒子
+
 static QVector3D cubePositions[] = {
 	QVector3D(0.0f,  0.0f,  0.0f),
 	QVector3D(0.0f, -4.0f,  0.0f),
@@ -217,120 +206,29 @@ void ViewGLWidget::resizeGL(int width, int height)
 
 void ViewGLWidget::initShader()
 {
-	//lingting shader
-	//in输入，out输出,uniform从cpu向gpu发送
-	const char *lighting_vertex = R"(#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoords;
-
-out vec3 FragPos;
-out vec3 Normal;
-out vec2 TexCoords;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main()
-{
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;
-    TexCoords = aTexCoords;
-
-    gl_Position = projection * view * vec4(FragPos, 1.0);
-})";
-	const char *lighting_fragment = R"(#version 330 core
-out vec4 FragColor;
-
-struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    float shininess;
-};
-
-struct Light {
-    vec3 position;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float constant;
-    float linear;
-    float quadratic;
-};
-
-in vec3 FragPos;
-in vec3 Normal;
-in vec2 TexCoords;
-
-uniform vec3 viewPos;
-uniform Material material;
-uniform Light light;
-
-void main()
-{
-    // ambient
-    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
-
-    // diffuse
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords).rgb;
-
-    // specular
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;
-
-    float distance = length(light.position - FragPos);
-    float attenuation = 1.0f / (light.constant + light.linear*distance +light.quadratic*(distance*distance));
-
-    vec3 result = (ambient + diffuse + specular)*attenuation;
-    FragColor = vec4(result, 1.0);
-})";
-
-	//将source编译为指定类型的着色器，并添加到此着色器程序
-	if (!m_lightingShader.addCacheableShaderFromSourceCode(
-		QOpenGLShader::Vertex, lighting_vertex)) {
+	//uniform from cpu to gpu
+	if (!m_lightingShader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Vertex, ":/shader/lightShader.vert")) {
 		qDebug() << "compiler vertex error" << m_lightingShader.log();
 	}
-	if (!m_lightingShader.addCacheableShaderFromSourceCode(
-		QOpenGLShader::Fragment, lighting_fragment)) {
+	if (!m_lightingShader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Fragment, ":/shader/lightShader.frag")) {
 		qDebug() << "compiler fragment error" << m_lightingShader.log();
 	}
-	//使用addShader()将添加到该程序的着色器链接在一起。
+
 	if (!m_lightingShader.link()) {
 		qDebug() << "link shaderprogram error" << m_lightingShader.log();
 	}
 
-	//lamp shader
-	const char *lamp_vertex = R"(#version 330 core
-layout (location = 0) in vec3 aPos;
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-void main()
-{
-gl_Position = projection * view * model * vec4(aPos, 1.0f);
-})";
-	const char *lamp_fragment = R"(#version 330 core
-out vec4 FragColor;
-void main()
-{
-FragColor = vec4(1.0);
-})"; // set alle 4 vector values to 1.0
-
-	if (!m_lampShader.addCacheableShaderFromSourceCode(
-		QOpenGLShader::Vertex, lamp_vertex)) {
+	if (!m_lampShader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Vertex, ":/shader/lampShader.vert")) {
 		qDebug() << "compiler vertex error" << m_lampShader.log();
 	}
-	if (!m_lampShader.addCacheableShaderFromSourceCode(
-		QOpenGLShader::Fragment, lamp_fragment)) {
+	if (!m_lampShader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Fragment, ":/shader/lampShader.frag")) {
 		qDebug() << "compiler fragment error" << m_lampShader.log();
 	}
+
 	if (!m_lampShader.link()) {
 		qDebug() << "link shaderprogram error" << m_lampShader.log();
 	}
@@ -343,11 +241,11 @@ QOpenGLTexture *ViewGLWidget::initTexture(const QString &imgpath)
 		qDebug() << "Failed to create texture";
 	}
 	//set the texture wrapping parameters
-	//等于glTexParameteri(GLtexture_2D, GLtexture_WRAP_S, GL_REPEAT);
+	//equals glTexParameteri(GLtexture_2D, GLtexture_WRAP_S, GL_REPEAT);
 	texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
 	texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//
-																			 //set texture filtering parameters
-																			 //等价于glTexParameteri(GLtexture_2D, GLtexture_MIN_FILTER, GL_LINEAR);
+	//set texture filtering parameters
+	//等价于glTexParameteri(GLtexture_2D, GLtexture_MIN_FILTER, GL_LINEAR);
 	texture->setMinificationFilter(QOpenGLTexture::Linear);
 	texture->setMagnificationFilter(QOpenGLTexture::Linear);
 	return texture;
