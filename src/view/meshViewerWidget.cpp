@@ -22,7 +22,8 @@ void MeshViewerWidget::open_mesh_gui(QString fname)
 	//OpenMesh::IO::read_mesh(m_triMesh, fname);
 	if(OpenMesh::IO::read_mesh(m_triMesh, fname.toStdString()))
 	{
-		
+		int numFace = m_triMesh.n_faces();
+		int numVert = m_triMesh.n_vertices();
 	}
 
 

@@ -3,7 +3,8 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QOffscreenSurface>
-#include "view\viewGLwidget.h"
+//#include "view\viewGLwidget.h"
+#include "view\meshViewerWidget.h"
 
 int main (int argc, char** argv)
 {
@@ -16,7 +17,9 @@ int main (int argc, char** argv)
 	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
 	QSurfaceFormat::setDefaultFormat(fmt);
 
-	ViewGLWidget w;
+	//ViewGLWidget w;
+	MeshViewerWidget w;
+	w.open_mesh_gui("D:/sphere.obj");
 	w.show();
 	return app.exec();
 }

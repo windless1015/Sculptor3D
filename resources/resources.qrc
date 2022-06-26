@@ -5,6 +5,8 @@
         <file>shader/lampShader.vert</file>
 		<file>shader/lightShader.frag</file>
         <file>shader/lightShader.vert</file>
+		<file>shader/sphere.frag</file>
+        <file>shader/sphere.vert</file>
 		<file>container2_specular.png</file>
 		<file>container2.png</file>
     </qresource>

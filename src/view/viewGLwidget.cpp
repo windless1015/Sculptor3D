@@ -1,8 +1,38 @@
+﻿#include <QCursor>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include <QMenu>
+#include <QtMath>
 #include "viewGLwidget.h"
 
 ViewGLWidget::ViewGLWidget(QWidget *parent) : 
 	QOpenGLWidget(parent)
 {
+	rotationQuat = QQuaternion::fromAxisAndAngle(1.0f, 0.0f, 0.0f, 90.0f);
+
+	//右键菜单
+	m_righMenu = new QMenu(this);
+	m_righMenu->addAction("Toggle depth test", [this] {
+		enableDepthTest = !enableDepthTest;
+		update();
+	});
+	m_righMenu->addAction("Toggle cull backface", [this] {
+		enableCullBackFace = !enableCullBackFace;
+		update();
+	});
+	m_righMenu->addAction("Set Fill Mode", [this] {
+		drawMode = 0;
+		update();
+	});
+	m_righMenu->addAction("Set Line Mode", [this] {
+		drawMode = 1;
+		update();
+	});
+	m_righMenu->addAction("Set Point Mode", [this] {
+		drawMode = 2;
+		update();
+	});
+
 }
 
 ViewGLWidget::~ViewGLWidget()
@@ -10,11 +40,8 @@ ViewGLWidget::~ViewGLWidget()
 	if (!isValid())
 		return;
 	makeCurrent();
+	m_vao.destroy();
 	m_vbo.destroy();
-	m_lightingVao.destroy();
-	m_lampVao.destroy();
-	delete diffuseMap;
-	delete specularMap;
 	doneCurrent();
 }
 
@@ -23,141 +50,56 @@ void ViewGLWidget::initializeGL()
 	initializeOpenGLFunctions();
 	initShader();
 
-	//float vertices[] = {
-	//	// positions          // normals           // texture coords
-	//	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-	//	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-	//	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-	//	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-	//	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+	float a, x, y;
+	const float out_r = 1.0f;//外圆半径
+	const float in_r = 0.5f;//内圆半径
+	const float section_r = (out_r - in_r) / 2;//截面圆环半径
+	const int section_slice = 24;//截面圆边定点数
+	const int torus_slice = 24;//整体圆环截面数
+							   //1.先求一个截面的顶点做基准
+	QVector<QVector3D> section_vec;
+	for (int i = 0; i<section_slice; i++)
+	{
+		a = qDegreesToRadians(360.0f / section_slice*i);
+		x = section_r*cos(a);
+		y = section_r*sin(a);
+		QVector3D vec(x, y, 0);
+		section_vec.push_back(vec);
+	}
+	//2.再对截面定点进行坐标变换，形成一个环面的顶点
+	//3.对顶点进行组织，使之能围成三角
+	QMatrix4x4 cur_mat;//当前截面的变换矩阵
+	QMatrix4x4 next_mat;//下一个截面的变换矩阵
+	next_mat.setToIdentity();
+	next_mat.translate(out_r - section_r, 0, 0);
+	for (int i = 0; i<torus_slice; i++)
+	{
+		cur_mat = next_mat;
+		next_mat.setToIdentity();
+		next_mat.rotate(360.0f / torus_slice*(i + 1), 0, 1.0f, 0);
+		next_mat.translate(out_r - section_r, 0, 0);
+		for (int j = 0; j<section_vec.size(); j++)
+		{
+			vertex.push_back(cur_mat * section_vec.at(j));
+			vertex.push_back(next_mat * section_vec.at(j));
+		}
+		vertex.push_back(vertex.at(vertex.size() - section_vec.size() * 2));
+		vertex.push_back(vertex.at(vertex.size() - section_vec.size() * 2));
+	}
 
-	//	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-	//	0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-	//	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-	//	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-	//	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-	//	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-	//	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-	//	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-	//	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-	//	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-	//	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-	//	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-	//	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-	//	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-	//	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-	//	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-	//	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-	//	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-	//	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-	//	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-	//	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-	//	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-	//	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-	//	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-	//	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-	//	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-	//	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-	//	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-	//	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-	//	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-	//};
-
-
-
-
-
-
-
-	float vertices[] = {
-		// positions          // normals           // texture coords
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-	};
-
-
+	m_vao.create();
+	m_vao.bind();
 	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	m_vbo.create();
-
-	//light vao
-	m_lightingVao.create();
-	m_lightingVao.bind();
 	m_vbo.bind();
-	m_vbo.allocate(vertices, sizeof(vertices));
-
-	m_lightingShader.setAttributeBuffer(0, GL_FLOAT, sizeof(GLfloat) * 0, 3, sizeof(GLfloat) * 8);
-	m_lightingShader.enableAttributeArray(0);
-	m_lightingShader.setAttributeBuffer(1, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 8);
-	m_lightingShader.enableAttributeArray(1);
-	m_lightingShader.setAttributeBuffer(2, GL_FLOAT, sizeof(GLfloat) * 6, 2, sizeof(GLfloat) * 8);
-	m_lightingShader.enableAttributeArray(2);
+	m_vbo.allocate((void *)vertex.data(), sizeof(GLfloat) * vertex.size() * 3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	m_shader.enableAttributeArray(0);
 	m_vbo.release();
-	m_lightingVao.release();
+	m_vao.release();
 
-	//lamp vao
-	m_lampVao.create();
-	m_lampVao.bind();
-	m_vbo.bind();
-	//setAttributeBuffer(int location, GLenum type, int offset, int tupleSize, int stride = 0)
-	m_lampShader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 8);
-	m_lampShader.enableAttributeArray(0);
-	m_vbo.release();
-	m_lampVao.release();
-
-	//����
-	diffuseMap = initTexture(":/container2.png");
-	specularMap = initTexture(":/container2_specular.png");
-	//shader configuration
-	m_lightingShader.bind();
-	m_lightingShader.setUniformValue("material.diffuse", 0);
-	m_lightingShader.setUniformValue("material.specular", 1);
-	m_lightingShader.release();
-
-	//m_timer.start();
+	//清屏设置
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 }
 
 
@@ -167,80 +109,59 @@ static QVector3D cubePositions = {
 
 void ViewGLWidget::paintGL()
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	if (enableDepthTest) {
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+	if (enableCullBackFace) {
+		glEnable(GL_CULL_FACE);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+	if (drawMode == 0) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	else if (drawMode == 1) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glPointSize(4.0f);
+	}
 
-	//draw lighting
-	m_lightingShader.bind();
+	m_shader.bind();
+	//观察矩阵
 	QMatrix4x4 view;
-	view.translate(0.0f, 0.0f, -10.0f);
-	view.rotate(45, QVector3D(1.0f, 0.8f, 0.0f));// rotate 45 degree
-	//view.rotate(0, QVector3D(1.0f, 0.8f, 0.0f));
+	float radius = 3.0f;
+	view.translate(0.0f, 0.0f, -radius);
+	view.rotate(rotationQuat);
+	//透视投影
+	QMatrix4x4 projection;
+	projection.perspective(projectionFovy, 1.0f * width() / height(), 0.1f, 100.0f);
+	m_shader.setUniformValue("mvp", projection * view);
+	if (!vertex.isEmpty())
+	{
+		QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); Q_UNUSED(vao_bind);
+		//使用当前激活的着色器和顶点属性配置和VBO（通过VAO间接绑定）来绘制图元
+		//void glDrawArrays(GLenum mode​, GLint first​, GLsizei count​);
+		//参数1为图元类型
+		//参数2指定顶点数组的起始索引
+		//参数3指定顶点个数
+		//GL_TRIANGLE_STRIP三角形带
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.size());
+	}
+	m_shader.release();
 
-	m_lightingShader.setUniformValue("view", view);
-	QMatrix4x4 projection; //͸��ͶӰ
-	projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-	m_lightingShader.setUniformValue("projection", projection);
-	QMatrix4x4 lightModel;
-
-	//��ΪҪ��ȡ�Ƶ�λ�ã�������ǰ��Ƶ�model����
-	lightModel = QMatrix4x4();
-	lightModel.translate(QVector3D(0.0f, 2.0f, 0.0f));
-	lightModel.scale(0.2f);
-	QVector3D light_pos = lightModel.map(QVector3D(0.0f, 0.0f, 0.0f));
-
-
-	QMatrix4x4 vv = view.inverted(); //�������۲��λ��
-	QVector3D view_pos = vv.map(QVector3D(0.0f, 0.0f, 0.0f));
-	m_lightingShader.setUniformValue("light.position", light_pos);
-	m_lightingShader.setUniformValue("light.constant", 1.0f); //������
-	m_lightingShader.setUniformValue("light.linear", 0.09f); //һ����
-	m_lightingShader.setUniformValue("light.quadratic", 0.032f); //������
-	m_lightingShader.setUniformValue("viewPos", view_pos);
-	//����-light properties
-	QVector3D light_color = QVector3D(1.0f, 1.0f, 1.0f);
-	QVector3D diffuse_color = light_color * 0.5f; // decrease the influence
-	QVector3D ambient_color = diffuse_color * 0.2f; // low influence
-	m_lightingShader.setUniformValue("light.ambient", ambient_color);
-	m_lightingShader.setUniformValue("light.diffuse", diffuse_color);
-	m_lightingShader.setUniformValue("light.specular", QVector3D(1.0f, 1.0f, 1.0f));
-
-	//����-material properties
-	//shininessӰ�쾵��߹��ɢ��/�뾶
-	m_lightingShader.setUniformValue("material.shininess", 64.0f);
-	m_lightingVao.bind();
-	//��2d����
-	//bind diffuse map
-	glActiveTexture(GL_TEXTURE0);
-	diffuseMap->bind();
-	//bind specular map
-	glActiveTexture(GL_TEXTURE1);
-	specularMap->bind();
-
-
-	//ģ�;���
-	QMatrix4x4 box_model;
-	box_model.translate(cubePositions);
-	//��ת
-	//box_model.rotate(45.0f, QVector3D(1.0f, 0.3f, 0.5f));
-	//������ɫ��������
-	m_lightingShader.setUniformValue("model", box_model);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-	m_lightingVao.release();
-	m_lightingShader.release();
-
-	//draw lamp
-	m_lampShader.bind();
-	m_lampShader.setUniformValue("view", view);
-	m_lampShader.setUniformValue("projection", projection);
-	m_lampShader.setUniformValue("model", lightModel);
-	m_lampVao.bind();
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	m_lampVao.release();
-	m_lampShader.release();
+	////设置为fill，不然会影响QPainter绘制的图
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//QPainter painter(this);
+	//painter.setPen(Qt::white);
+	//painter.setFont(QFont("Microsoft YaHei", 14));
+	//painter.drawText(20, 40, "Click right mouse button popup menu");
 }
 
 void ViewGLWidget::resizeGL(int width, int height)
@@ -248,51 +169,94 @@ void ViewGLWidget::resizeGL(int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+void ViewGLWidget::mousePressEvent(QMouseEvent *event)
+{
+	event->accept();
+	if (event->button() == Qt::RightButton) {
+		m_righMenu->popup(QCursor::pos());
+	}
+	else {
+		mousePos = event->pos();
+	}
+}
+void ViewGLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+	event->accept();
+}
+
+void ViewGLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+	event->accept();
+	//参照示例cube
+	QVector2D diff = QVector2D(event->pos()) - QVector2D(mousePos);
+	mousePos = event->pos();
+	QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
+	rotationAxis = (rotationAxis + n).normalized();
+	//不能对换乘的顺序
+	rotationQuat = QQuaternion::fromAxisAndAngle(rotationAxis, 3.0f) * rotationQuat;
+
+	update();
+}
+
+void ViewGLWidget::wheelEvent(QWheelEvent *event)
+{
+	event->accept();
+	//fovy越小，模型看起来越大
+	if (event->delta() < 0) {
+		//鼠标向下滑动为-，这里作为zoom out
+		projectionFovy += 0.5f;
+		if (projectionFovy > 90)
+			projectionFovy = 90;
+	}
+	else {
+		//鼠标向上滑动为+，这里作为zoom in
+		projectionFovy -= 0.5f;
+		if (projectionFovy < 1)
+			projectionFovy = 1;
+	}
+	update();
+}
+
+
+
+
+
+
+
+
 
 
 void ViewGLWidget::initShader()
 {
 	//uniform from cpu to gpu
-	if (!m_lightingShader.addCacheableShaderFromSourceFile(
-		QOpenGLShader::Vertex, ":/shader/lightShader.vert")) {
-		qDebug() << "compiler vertex error" << m_lightingShader.log();
+	if (!m_shader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Vertex, ":/shader/sphere.vert")) {
+		qDebug() << "compiler vertex error" << m_shader.log();
 	}
-	if (!m_lightingShader.addCacheableShaderFromSourceFile(
-		QOpenGLShader::Fragment, ":/shader/lightShader.frag")) {
-		qDebug() << "compiler fragment error" << m_lightingShader.log();
-	}
-
-	if (!m_lightingShader.link()) {
-		qDebug() << "link shaderprogram error" << m_lightingShader.log();
+	if (!m_shader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Fragment, ":/shader/sphere.frag")) {
+		qDebug() << "compiler fragment error" << m_shader.log();
 	}
 
-	if (!m_lampShader.addCacheableShaderFromSourceFile(
-		QOpenGLShader::Vertex, ":/shader/lampShader.vert")) {
-		qDebug() << "compiler vertex error" << m_lampShader.log();
-	}
-	if (!m_lampShader.addCacheableShaderFromSourceFile(
-		QOpenGLShader::Fragment, ":/shader/lampShader.frag")) {
-		qDebug() << "compiler fragment error" << m_lampShader.log();
+	if (!m_shader.link()) {
+		qDebug() << "link shaderprogram error" << m_shader.log();
 	}
 
-	if (!m_lampShader.link()) {
-		qDebug() << "link shaderprogram error" << m_lampShader.log();
-	}
 }
 
-QOpenGLTexture *ViewGLWidget::initTexture(const QString &imgpath)
-{
-	QOpenGLTexture *texture = new QOpenGLTexture(QImage(imgpath), QOpenGLTexture::GenerateMipMaps);
-	if (!texture->isCreated()) {
-		qDebug() << "Failed to create texture";
-	}
-	//set the texture wrapping parameters
-	//equals glTexParameteri(GLtexture_2D, GLtexture_WRAP_S, GL_REPEAT);
-	texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
-	texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//
-	//set texture filtering parameters
-	//�ȼ���glTexParameteri(GLtexture_2D, GLtexture_MIN_FILTER, GL_LINEAR);
-	texture->setMinificationFilter(QOpenGLTexture::Linear);
-	texture->setMagnificationFilter(QOpenGLTexture::Linear);
-	return texture;
-}
+//QOpenGLTexture *ViewGLWidget::initTexture(const QString &imgpath)
+//{
+//	QOpenGLTexture *texture = new QOpenGLTexture(QImage(imgpath), QOpenGLTexture::GenerateMipMaps);
+//	if (!texture->isCreated()) {
+//		qDebug() << "Failed to create texture";
+//	}
+//	//set the texture wrapping parameters
+//	//equals glTexParameteri(GLtexture_2D, GLtexture_WRAP_S, GL_REPEAT);
+//	texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
+//	texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//
+//	//set texture filtering parameters
+//	//等价于glTexParameteri(GLtexture_2D, GLtexture_MIN_FILTER, GL_LINEAR);
+//	texture->setMinificationFilter(QOpenGLTexture::Linear);
+//	texture->setMagnificationFilter(QOpenGLTexture::Linear);
+//	return texture;
+//}

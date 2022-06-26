@@ -5,11 +5,11 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-#include <QTimer>
 
 
 
 
+class QMenu;
 
 class ViewGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Compatibility
 {
@@ -23,16 +23,30 @@ protected:
 	void resizeGL(int, int) override;
 	void paintGL() override;
 
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void wheelEvent(QWheelEvent *event) override;
+
 private:
 	void initShader();
-	QOpenGLTexture *initTexture(const QString &imgpath);
+	//QOpenGLTexture *initTexture(const QString &imgpath);
 
 private:
-	QOpenGLShaderProgram m_lightingShader, m_lampShader;
-	QOpenGLVertexArrayObject m_lightingVao, m_lampVao;
-
+	QOpenGLShaderProgram m_shader;
+	QOpenGLVertexArrayObject m_vao;
 	QOpenGLBuffer m_vbo;
+
+
 	QOpenGLTexture *diffuseMap{ nullptr };
 	QOpenGLTexture *specularMap{ nullptr };
-
+	QPoint mousePos;
+	QVector3D rotationAxis;
+	QQuaternion rotationQuat;
+	float projectionFovy{ 45.0f };
+	QMenu *m_righMenu;
+	int drawMode{ 0 };
+	bool enableDepthTest{ false };
+	bool enableCullBackFace{ false };
+	QVector<QVector3D> vertex;
 };
