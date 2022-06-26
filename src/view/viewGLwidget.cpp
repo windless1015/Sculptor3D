@@ -7,6 +7,8 @@ ViewGLWidget::ViewGLWidget(QWidget *parent) :
 
 ViewGLWidget::~ViewGLWidget()
 {
+	if (!isValid())
+		return;
 	makeCurrent();
 	m_vbo.destroy();
 	m_lightingVao.destroy();
@@ -20,6 +22,57 @@ void ViewGLWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
 	initShader();
+
+	//float vertices[] = {
+	//	// positions          // normals           // texture coords
+	//	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+	//	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+	//	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+	//	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+	//	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+
+	//	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+	//	0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+	//	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+	//	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+	//	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+	//	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+
+	//	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+	//	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+	//	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+	//	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+	//	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+	//	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+	//	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+	//	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+	//	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+	//	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+	//	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+	//	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+
+	//	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+	//	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+	//	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+	//	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+	//	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+	//	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+
+	//	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+	//	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+	//	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+	//	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+	//	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+	//	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+	//};
+
+
+
+
+
+
 
 	float vertices[] = {
 		// positions          // normals           // texture coords
@@ -66,6 +119,7 @@ void ViewGLWidget::initializeGL()
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
 	};
 
+
 	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	m_vbo.create();
 
@@ -74,7 +128,7 @@ void ViewGLWidget::initializeGL()
 	m_lightingVao.bind();
 	m_vbo.bind();
 	m_vbo.allocate(vertices, sizeof(vertices));
-	//setAttributeBuffer(int location, GLenum type, int offset, int tupleSize, int stride = 0)
+
 	m_lightingShader.setAttributeBuffer(0, GL_FLOAT, sizeof(GLfloat) * 0, 3, sizeof(GLfloat) * 8);
 	m_lightingShader.enableAttributeArray(0);
 	m_lightingShader.setAttributeBuffer(1, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 8);
@@ -107,17 +161,8 @@ void ViewGLWidget::initializeGL()
 }
 
 
-static QVector3D cubePositions[] = {
+static QVector3D cubePositions = {
 	QVector3D(0.0f,  0.0f,  0.0f),
-	QVector3D(0.0f, -4.0f,  0.0f),
-	QVector3D(0.0f,  4.0f,  0.0f),
-	QVector3D(1.0f, -5.0f, 1.0f),
-	QVector3D(-1.5f, -2.2f, -2.5f),
-	QVector3D(-3.8f, -2.0f, -7.3f),
-	QVector3D(2.4f, -0.4f, -3.5f),
-	QVector3D(-1.7f, -3.0f, -6.5f),
-	QVector3D(5.3f, -2.0f, -2.5f),
-	QVector3D(-1.3f,  1.0f, -1.5f)
 };
 
 void ViewGLWidget::paintGL()
@@ -130,19 +175,22 @@ void ViewGLWidget::paintGL()
 	m_lightingShader.bind();
 	QMatrix4x4 view;
 	view.translate(0.0f, 0.0f, -10.0f);
-	view.rotate(45, QVector3D(1.0f, 0.8f, 0.0f));
+	view.rotate(45, QVector3D(1.0f, 0.8f, 0.0f));// rotate 45 degree
+	//view.rotate(0, QVector3D(1.0f, 0.8f, 0.0f));
+
 	m_lightingShader.setUniformValue("view", view);
 	QMatrix4x4 projection; //透视投影
 	projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
 	m_lightingShader.setUniformValue("projection", projection);
-	QMatrix4x4 model;//模型矩阵
-					 //lightingShader.setUniformValue("model", model);
-					 //因为要获取灯的位置，所以提前算灯的model矩阵
-	model = QMatrix4x4();
-	model.translate(QVector3D(0.0f, 2.0f, 0.0f));
-	model.scale(0.2f);
-	QVector3D light_pos = model.map(QVector3D(0.0f, 0.0f, 0.0f));
-	//QVector3D direction_pos = QVector3D(0.0f, -10.0f, 0.0f);
+	QMatrix4x4 lightModel;
+
+	//因为要获取灯的位置，所以提前算灯的model矩阵
+	lightModel = QMatrix4x4();
+	lightModel.translate(QVector3D(0.0f, 2.0f, 0.0f));
+	lightModel.scale(0.2f);
+	QVector3D light_pos = lightModel.map(QVector3D(0.0f, 0.0f, 0.0f));
+
+
 	QMatrix4x4 vv = view.inverted(); //逆矩阵求观察点位置
 	QVector3D view_pos = vv.map(QVector3D(0.0f, 0.0f, 0.0f));
 	m_lightingShader.setUniformValue("light.position", light_pos);
@@ -169,20 +217,18 @@ void ViewGLWidget::paintGL()
 	//bind specular map
 	glActiveTexture(GL_TEXTURE1);
 	specularMap->bind();
-	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//多个盒子便于对比
-	for (unsigned int i = 0; i < 10; i++) {
-		//模型矩阵
-		QMatrix4x4 box_model;
-		//平移
-		box_model.translate(cubePositions[i]);
-		float angle = 20.0f * i;
-		//旋转
-		box_model.rotate(angle, QVector3D(1.0f, 0.3f, 0.5f));
-		//传入着色器并绘制
-		m_lightingShader.setUniformValue("model", box_model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+
+
+	//模型矩阵
+	QMatrix4x4 box_model;
+	box_model.translate(cubePositions);
+	//旋转
+	//box_model.rotate(45.0f, QVector3D(1.0f, 0.3f, 0.5f));
+	//传入着色器并绘制
+	m_lightingShader.setUniformValue("model", box_model);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
 	m_lightingVao.release();
 	m_lightingShader.release();
 
@@ -190,7 +236,7 @@ void ViewGLWidget::paintGL()
 	m_lampShader.bind();
 	m_lampShader.setUniformValue("view", view);
 	m_lampShader.setUniformValue("projection", projection);
-	m_lampShader.setUniformValue("model", model);
+	m_lampShader.setUniformValue("model", lightModel);
 	m_lampVao.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	m_lampVao.release();
