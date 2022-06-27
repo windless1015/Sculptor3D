@@ -20,7 +20,10 @@ int main (int argc, char** argv)
 
 	//ViewGLWidget w;
 	MeshViewerWidget w;
-	w.open_mesh_gui("D:/skull.stl");
+	//w.open_mesh_gui("D:/skull.stl");
+	w.open_mesh_gui("D:/Sphere.stl");
+	//w.open_mesh_gui("D:/Icosahedron.stl");
+	//w.open_mesh_gui("D:/cube.stl");
 	w.show();
 	return app.exec();
 }

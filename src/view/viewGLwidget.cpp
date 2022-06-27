@@ -2,6 +2,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QMenu>
+#include <QPainter>
 #include <QtMath>
 #include "viewGLwidget.h"
 
@@ -89,23 +90,16 @@ void ViewGLWidget::initializeGL()
 	//	m_meshVertxArray.push_back(m_meshVertxArray.at(m_meshVertxArray.size() - section_vec.size() * 2));
 	//}
 
-	/*m_vao.create();
-	m_vao.bind();
-	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	m_vbo.create();
-	m_vbo.bind();
-	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
-	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
-	m_shader.enableAttributeArray(0);
-	m_vbo.release();
-	m_vao.release();*/
-
-
-
-
-
-
-
+	//m_vao.create();
+	//m_vao.bind();
+	//m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	//m_vbo.create();
+	//m_vbo.bind();
+	//m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
+	//m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	//m_shader.enableAttributeArray(0);
+	//m_vbo.release();
+	//m_vao.release();
 
 
 
@@ -117,8 +111,12 @@ void ViewGLWidget::initializeGL()
 	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	m_vbo.create();
 	m_vbo.bind();
-	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
-	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+
+	//m_meshVertxArray stores all the vertices, one vertex 
+	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size()*3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat)* 3);
+
+
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
 	m_vao.release();
@@ -150,7 +148,8 @@ void ViewGLWidget::paintGL()
 	if (drawMode == 0) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	else if (drawMode == 1) {
+	else if (drawMode == 1)  //line mode
+	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 	else {
@@ -164,29 +163,18 @@ void ViewGLWidget::paintGL()
 	float radius = 3.0f;
 	view.translate(0.0f, 0.0f, -radius);
 	view.rotate(rotationQuat);
-	//透视投影
+	//perspective projection
 	QMatrix4x4 projection;
 	projection.perspective(projectionFovy, 1.0f * width() / height(), 0.1f, 100.0f);
 	m_shader.setUniformValue("mvp", projection * view);
 	if (!m_meshVertxArray.isEmpty())
 	{
 		QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); Q_UNUSED(vao_bind);
-		//使用当前激活的着色器和顶点属性配置和VBO（通过VAO间接绑定）来绘制图元
-		//void glDrawArrays(GLenum mode​, GLint first​, GLsizei count​);
-		//参数1为图元类型
-		//参数2指定顶点数组的起始索引
-		//参数3指定顶点个数
-		//GL_TRIANGLE_STRIP三角形带
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, m_meshVertxArray.size());
+		//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
+		glDrawArrays(GL_TRIANGLES, 0, m_meshVertxArray.size());
 	}
 	m_shader.release();
 
-	////设置为fill，不然会影响QPainter绘制的图
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//QPainter painter(this);
-	//painter.setPen(Qt::white);
-	//painter.setFont(QFont("Microsoft YaHei", 14));
-	//painter.drawText(20, 40, "Click right mouse button popup menu");
 }
 
 void ViewGLWidget::resizeGL(int width, int height)
@@ -217,7 +205,7 @@ void ViewGLWidget::mouseMoveEvent(QMouseEvent *event)
 	mousePos = event->pos();
 	QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
 	rotationAxis = (rotationAxis + n).normalized();
-	//不能对换乘的顺序
+	
 	rotationQuat = QQuaternion::fromAxisAndAngle(rotationAxis, 3.0f) * rotationQuat;
 
 	update();
@@ -229,24 +217,18 @@ void ViewGLWidget::wheelEvent(QWheelEvent *event)
 	//fovy越小，模型看起来越大
 	if (event->delta() < 0) {
 		//鼠标向下滑动为-，这里作为zoom out
-		projectionFovy += 5.5f;
-		if (projectionFovy > 90)
-			projectionFovy = 90;
+		projectionFovy += 1.0f;
+		if (projectionFovy > 300)
+			projectionFovy = 300;
 	}
 	else {
 		//鼠标向上滑动为+，这里作为zoom in
-		projectionFovy -= 5.5f;
-		if (projectionFovy < 1)
-			projectionFovy = 1;
+		projectionFovy -= 1.0f;
+		if (projectionFovy < 0.1)
+			projectionFovy = 0.1;
 	}
 	update();
 }
-
-
-
-
-
-
 
 
 
@@ -269,6 +251,10 @@ void ViewGLWidget::initShader()
 
 }
 
+
+
+
+
 //QOpenGLTexture *ViewGLWidget::initTexture(const QString &imgpath)
 //{
 //	QOpenGLTexture *texture = new QOpenGLTexture(QImage(imgpath), QOpenGLTexture::GenerateMipMaps);
@@ -287,18 +273,34 @@ void ViewGLWidget::initShader()
 //}
 
 
-void ViewGLWidget::drawMesh(const Triangle_Mesh& inputMesh)
+void ViewGLWidget::drawMesh(Triangle_mesh& inputMesh)
 {
 	m_meshVertxArray.clear();
-	auto v_end = inputMesh.vertices_end();
-	//traverse all the verts
-	for (auto v_it = inputMesh.vertices_begin(); v_it != v_end; ++v_it)
+	//traverse each face of the mesh
+	for (Triangle_mesh::FaceIter f_it = inputMesh.faces_begin(); f_it != inputMesh.faces_end(); ++f_it)
 	{
-		VertexHandle vh = *v_it;
-		//p为顶点坐标
-		Point3f p = inputMesh.point(vh);
-		QVector3D v3(p[0], p[1], p[2]);
-		m_meshVertxArray.push_back(v3);
+		FaceHandle fh = *f_it;
+		//traverse three points on this face, counterclock size
+		/*for (Triangle_mesh::FVIter fv_it = inputMesh.fv_begin(fh); fv_it != inputMesh.fv_end(fh); ++fv_it)
+		{
+			Point p = inputMesh.point(*fv_it);
+			QVector3D v3(p[0], p[1], p[2]);
+			m_meshVertxArray.push_back(v3);
+			qDebug() << p[0] << "," << p[1] << "," << p[2];
+		}*/
+
+		int index = 0;
+		auto fv_ccw_it = inputMesh.fv_ccwiter(fh);
+		for (; fv_ccw_it.is_valid(); ++fv_ccw_it)
+		{
+			//counterclock traverse the face
+			Point p = inputMesh.point(*fv_ccw_it);
+			QVector3D v3(p[0], p[1], p[2]);
+			m_meshVertxArray.push_back(v3);
+			//qDebug() << p[0] << "," << p[1] << "," << p[2];
+			index++;
+		}
+
 	}
 
 }

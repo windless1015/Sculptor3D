@@ -19,7 +19,7 @@ public:
 	void open_mesh_gui(QString fname);
 
 private:
-	Triangle_Mesh m_triMesh;
+	Triangle_mesh m_triMesh;
 
 private:
 	//OpenMesh::IO::Options _options;

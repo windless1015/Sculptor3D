@@ -1,9 +1,0 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-    <qresource>
-        <file>resources/shader/texture.frag</file>
-        <file>resources/shader/texture.vert</file>
-		<file>resources/container2_specular.png</file>
-		<file>resources/container2.png</file>
-    </qresource>
-</RCC>
