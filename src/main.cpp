@@ -6,6 +6,7 @@
 //#include "view\viewGLwidget.h"
 #include "view\meshViewerWidget.h"
 
+
 int main (int argc, char** argv)
 {
 	QGuiApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
@@ -19,7 +20,7 @@ int main (int argc, char** argv)
 
 	//ViewGLWidget w;
 	MeshViewerWidget w;
-	w.open_mesh_gui("D:/sphere.obj");
+	w.open_mesh_gui("D:/skull.stl");
 	w.show();
 	return app.exec();
 }

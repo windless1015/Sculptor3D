@@ -50,55 +50,80 @@ void ViewGLWidget::initializeGL()
 	initializeOpenGLFunctions();
 	initShader();
 
-	float a, x, y;
-	const float out_r = 1.0f;//外圆半径
-	const float in_r = 0.5f;//内圆半径
-	const float section_r = (out_r - in_r) / 2;//截面圆环半径
-	const int section_slice = 24;//截面圆边定点数
-	const int torus_slice = 24;//整体圆环截面数
-							   //1.先求一个截面的顶点做基准
-	QVector<QVector3D> section_vec;
-	for (int i = 0; i<section_slice; i++)
-	{
-		a = qDegreesToRadians(360.0f / section_slice*i);
-		x = section_r*cos(a);
-		y = section_r*sin(a);
-		QVector3D vec(x, y, 0);
-		section_vec.push_back(vec);
-	}
-	//2.再对截面定点进行坐标变换，形成一个环面的顶点
-	//3.对顶点进行组织，使之能围成三角
-	QMatrix4x4 cur_mat;//当前截面的变换矩阵
-	QMatrix4x4 next_mat;//下一个截面的变换矩阵
-	next_mat.setToIdentity();
-	next_mat.translate(out_r - section_r, 0, 0);
-	for (int i = 0; i<torus_slice; i++)
-	{
-		cur_mat = next_mat;
-		next_mat.setToIdentity();
-		next_mat.rotate(360.0f / torus_slice*(i + 1), 0, 1.0f, 0);
-		next_mat.translate(out_r - section_r, 0, 0);
-		for (int j = 0; j<section_vec.size(); j++)
-		{
-			vertex.push_back(cur_mat * section_vec.at(j));
-			vertex.push_back(next_mat * section_vec.at(j));
-		}
-		vertex.push_back(vertex.at(vertex.size() - section_vec.size() * 2));
-		vertex.push_back(vertex.at(vertex.size() - section_vec.size() * 2));
-	}
+
+	//m_meshVertxArray.clear();
+	//float a, x, y;
+	//const float out_r = 1.0f;//外圆半径
+	//const float in_r = 0.5f;//内圆半径
+	//const float section_r = (out_r - in_r) / 2;//截面圆环半径
+	//const int section_slice = 24;//截面圆边定点数
+	//const int torus_slice = 24;//整体圆环截面数
+	//						   //1.先求一个截面的顶点做基准
+	//QVector<QVector3D> section_vec;
+	//for (int i = 0; i<section_slice; i++)
+	//{
+	//	a = qDegreesToRadians(360.0f / section_slice*i);
+	//	x = section_r*cos(a);
+	//	y = section_r*sin(a);
+	//	QVector3D vec(x, y, 0);
+	//	section_vec.push_back(vec);
+	//}
+	//////2.再对截面定点进行坐标变换，形成一个环面的顶点
+	//////3.对顶点进行组织，使之能围成三角
+	//QMatrix4x4 cur_mat;//当前截面的变换矩阵
+	//QMatrix4x4 next_mat;//下一个截面的变换矩阵
+	//next_mat.setToIdentity();
+	//next_mat.translate(out_r - section_r, 0, 0);
+	//for (int i = 0; i<torus_slice; i++)
+	//{
+	//	cur_mat = next_mat;
+	//	next_mat.setToIdentity();
+	//	next_mat.rotate(360.0f / torus_slice*(i + 1), 0, 1.0f, 0);
+	//	next_mat.translate(out_r - section_r, 0, 0);
+	//	for (int j = 0; j<section_vec.size(); j++)
+	//	{
+	//		m_meshVertxArray.push_back(cur_mat * section_vec.at(j));
+	//		m_meshVertxArray.push_back(next_mat * section_vec.at(j));
+	//	}
+	//	m_meshVertxArray.push_back(m_meshVertxArray.at(m_meshVertxArray.size() - section_vec.size() * 2));
+	//	m_meshVertxArray.push_back(m_meshVertxArray.at(m_meshVertxArray.size() - section_vec.size() * 2));
+	//}
+
+	/*m_vao.create();
+	m_vao.bind();
+	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	m_vbo.create();
+	m_vbo.bind();
+	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	m_shader.enableAttributeArray(0);
+	m_vbo.release();
+	m_vao.release();*/
+
+
+
+
+
+
+
+
+
+
+	m_vao.release();
+	m_vbo.release();
 
 	m_vao.create();
 	m_vao.bind();
 	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	m_vbo.create();
 	m_vbo.bind();
-	m_vbo.allocate((void *)vertex.data(), sizeof(GLfloat) * vertex.size() * 3);
+	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
 	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
 	m_vao.release();
 
-	//清屏设置
+	//set the background color of the opengl window
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 }
 
@@ -143,7 +168,7 @@ void ViewGLWidget::paintGL()
 	QMatrix4x4 projection;
 	projection.perspective(projectionFovy, 1.0f * width() / height(), 0.1f, 100.0f);
 	m_shader.setUniformValue("mvp", projection * view);
-	if (!vertex.isEmpty())
+	if (!m_meshVertxArray.isEmpty())
 	{
 		QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); Q_UNUSED(vao_bind);
 		//使用当前激活的着色器和顶点属性配置和VBO（通过VAO间接绑定）来绘制图元
@@ -152,7 +177,7 @@ void ViewGLWidget::paintGL()
 		//参数2指定顶点数组的起始索引
 		//参数3指定顶点个数
 		//GL_TRIANGLE_STRIP三角形带
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex.size());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, m_meshVertxArray.size());
 	}
 	m_shader.release();
 
@@ -204,13 +229,13 @@ void ViewGLWidget::wheelEvent(QWheelEvent *event)
 	//fovy越小，模型看起来越大
 	if (event->delta() < 0) {
 		//鼠标向下滑动为-，这里作为zoom out
-		projectionFovy += 0.5f;
+		projectionFovy += 5.5f;
 		if (projectionFovy > 90)
 			projectionFovy = 90;
 	}
 	else {
 		//鼠标向上滑动为+，这里作为zoom in
-		projectionFovy -= 0.5f;
+		projectionFovy -= 5.5f;
 		if (projectionFovy < 1)
 			projectionFovy = 1;
 	}
@@ -260,3 +285,20 @@ void ViewGLWidget::initShader()
 //	texture->setMagnificationFilter(QOpenGLTexture::Linear);
 //	return texture;
 //}
+
+
+void ViewGLWidget::drawMesh(const Triangle_Mesh& inputMesh)
+{
+	m_meshVertxArray.clear();
+	auto v_end = inputMesh.vertices_end();
+	//traverse all the verts
+	for (auto v_it = inputMesh.vertices_begin(); v_it != v_end; ++v_it)
+	{
+		VertexHandle vh = *v_it;
+		//p为顶点坐标
+		Point3f p = inputMesh.point(vh);
+		QVector3D v3(p[0], p[1], p[2]);
+		m_meshVertxArray.push_back(v3);
+	}
+
+}

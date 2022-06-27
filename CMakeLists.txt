@@ -32,6 +32,7 @@ SET(SCULPTOR3D_HDRS
 	src/view/viewGLwidget.h
 	src/view/meshViewerWidget.h
 	src/utility/makeGeometries.h
+	src/baseDataTypes.h
 )
 
 

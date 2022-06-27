@@ -5,9 +5,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-
-
-
+#include "src/baseDataTypes.h"
 
 class QMenu;
 
@@ -27,6 +25,9 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
+
+public:
+	virtual void drawMesh(const Triangle_Mesh& inputMesh);
 
 private:
 	void initShader();
@@ -48,5 +49,6 @@ private:
 	int drawMode{ 0 };
 	bool enableDepthTest{ false };
 	bool enableCullBackFace{ false };
-	QVector<QVector3D> vertex;
+
+	QVector<QVector3D> m_meshVertxArray;
 };

@@ -1,10 +1,8 @@
 #pragma once
 //#include <OpenMesh/Tools/Utils/getopt.h>
-#include <OpenMesh/Core/IO/MeshIO.hh>
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
-#include "viewGLwidget.h"
 
-typedef OpenMesh::TriMesh_ArrayKernelT<>  Triangle_Mesh;
+#include "viewGLwidget.h"
+#include "src/baseDataTypes.h"
 
 
 
