@@ -11,6 +11,10 @@ SEt(CMAKE_AUTOMOC ON)
 SEt(CMAKE_AUTORCC ON)
 SET(CMAKE_AUTOUIC ON)
 
+set(CMAKE_AUTOUIC_SEARCH_PATHS
+ src/ui
+)
+ 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} Qt5_DIR OpenMesh_DIR)
 
 
@@ -24,6 +28,7 @@ FIND_PACKAGE(OpenMesh REQUIRED)
 SET(SCULPTOR3D_SRCS
 	src/main.cpp
 	src/view/viewGLwidget.cpp
+	src/view/mainWindow.cpp
 	src/view/meshViewerWidget.cpp
 	src/utility/makeGeometries.cpp
 )
@@ -31,10 +36,14 @@ SET(SCULPTOR3D_SRCS
 SET(SCULPTOR3D_HDRS
 	src/view/viewGLwidget.h
 	src/view/meshViewerWidget.h
+	src/view/mainWindow.h
 	src/utility/makeGeometries.h
 	src/baseDataTypes.h
 )
 
+SET(UI_FILES
+	src/ui/mainwindow.ui
+)
 
 
 set(QRC_SOURCE_FILES 
@@ -49,6 +58,7 @@ ADD_EXECUTABLE( ${CMAKE_PROJECT_NAME} WIN32
   ${SCULPTOR3D_SRCS}
   ${SCULPTOR3D_HDRS}
   ${QRC_FILES}
+  ${UI_FILES}
 )
 
 INCLUDE_DIRECTORIES(
