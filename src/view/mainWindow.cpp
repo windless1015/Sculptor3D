@@ -4,6 +4,8 @@
 #include <QStatusBar>
 #include <QGridLayout>
 #include <QScrollArea>
+#include <QMessageBox>
+#include <QFileDialog>
 
 #include "ui_mainwindow.h"
 #include "mainWindow.h"
@@ -28,8 +30,20 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+
 void MainWindow::initializeUI()
 {
+	m_actionGroup = new QActionGroup(this);
+	m_actionGroup->setExclusive(true);
+	connect(m_actionGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateItem(QAction*)));
+
+	QAction *actionOpen = new QAction("OpenFile", m_actionGroup);
+	ui->menuFile->addAction(actionOpen);
+
+	QAction *actionNewMesh = new QAction("NewMesh", m_actionGroup);
+	ui->menuFile->addAction(actionNewMesh);
+
+
 	QScrollArea* scrollArea = new QScrollArea;
 	//QTabWidget*  tabWidget = new QTabWidget;
 
@@ -52,9 +66,25 @@ void MainWindow::initializeUI()
 	horizontalLayout->setStretchFactor(m_infoWidget, 1);
 	ui->centralwidget->setLayout(horizontalLayout);
 
-	//w.open_mesh_gui("D:/skull.stl");
-	m_meshView3DWidget->open_mesh_gui("D:/Sphere.stl");
-	//w.open_mesh_gui("D:/Icosahedron.stl");
-	//w.open_mesh_gui("D:/cube.stl");
-	//m_meshView3DWidget->show();
+
+	//m_meshView3DWidget->displayMesh("D:/Sphere.stl");
+
+
+}
+
+
+void MainWindow::updateItem(QAction *action)
+{
+	if (action->text() == "OpenFile") 
+	{
+		QString fileName = QFileDialog::getOpenFileName(this,
+			("Open File"), "D:/",
+			"Image Files (*.stl *.obj)");
+		m_meshView3DWidget->displayMesh(fileName);
+
+	}
+	if (action->text() == "NewMesh") {
+		QMessageBox::information(NULL, "Title", "NewMesh",
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+	}
 }

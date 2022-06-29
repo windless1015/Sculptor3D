@@ -48,63 +48,12 @@ ViewGLWidget::~ViewGLWidget()
 
 void ViewGLWidget::initializeGL()
 {
+
 	initializeOpenGLFunctions();
+	//set the background color of the opengl window
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
 	initShader();
-
-
-	//m_meshVertxArray.clear();
-	//float a, x, y;
-	//const float out_r = 1.0f;//外圆半径
-	//const float in_r = 0.5f;//内圆半径
-	//const float section_r = (out_r - in_r) / 2;//截面圆环半径
-	//const int section_slice = 24;//截面圆边定点数
-	//const int torus_slice = 24;//整体圆环截面数
-	//						   //1.先求一个截面的顶点做基准
-	//QVector<QVector3D> section_vec;
-	//for (int i = 0; i<section_slice; i++)
-	//{
-	//	a = qDegreesToRadians(360.0f / section_slice*i);
-	//	x = section_r*cos(a);
-	//	y = section_r*sin(a);
-	//	QVector3D vec(x, y, 0);
-	//	section_vec.push_back(vec);
-	//}
-	//////2.再对截面定点进行坐标变换，形成一个环面的顶点
-	//////3.对顶点进行组织，使之能围成三角
-	//QMatrix4x4 cur_mat;//当前截面的变换矩阵
-	//QMatrix4x4 next_mat;//下一个截面的变换矩阵
-	//next_mat.setToIdentity();
-	//next_mat.translate(out_r - section_r, 0, 0);
-	//for (int i = 0; i<torus_slice; i++)
-	//{
-	//	cur_mat = next_mat;
-	//	next_mat.setToIdentity();
-	//	next_mat.rotate(360.0f / torus_slice*(i + 1), 0, 1.0f, 0);
-	//	next_mat.translate(out_r - section_r, 0, 0);
-	//	for (int j = 0; j<section_vec.size(); j++)
-	//	{
-	//		m_meshVertxArray.push_back(cur_mat * section_vec.at(j));
-	//		m_meshVertxArray.push_back(next_mat * section_vec.at(j));
-	//	}
-	//	m_meshVertxArray.push_back(m_meshVertxArray.at(m_meshVertxArray.size() - section_vec.size() * 2));
-	//	m_meshVertxArray.push_back(m_meshVertxArray.at(m_meshVertxArray.size() - section_vec.size() * 2));
-	//}
-
-	//m_vao.create();
-	//m_vao.bind();
-	//m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	//m_vbo.create();
-	//m_vbo.bind();
-	//m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
-	//m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
-	//m_shader.enableAttributeArray(0);
-	//m_vbo.release();
-	//m_vao.release();
-
-
-
-	m_vao.release();
-	m_vbo.release();
 
 	m_vao.create();
 	m_vao.bind();
@@ -115,23 +64,23 @@ void ViewGLWidget::initializeGL()
 	//m_meshVertxArray stores all the vertices, one vertex 
 	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size()*3);
 	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat)* 3);
-
-
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
 	m_vao.release();
 
-	//set the background color of the opengl window
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	
 }
 
 
-static QVector3D cubePositions = {
-	QVector3D(0.0f,  0.0f,  0.0f),
-};
 
 void ViewGLWidget::paintGL()
 {
+	if (m_meshVertxArray.isEmpty())
+	{
+		return;
+	}
+
+
 	if (enableDepthTest) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -157,6 +106,9 @@ void ViewGLWidget::paintGL()
 		glPointSize(4.0f);
 	}
 
+	QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); 
+	Q_UNUSED(vao_bind); //this line is same to m_vao.bind(); and m_vao.release();
+
 	m_shader.bind();
 	//观察矩阵
 	QMatrix4x4 view;
@@ -165,15 +117,14 @@ void ViewGLWidget::paintGL()
 	view.rotate(rotationQuat);
 	//perspective projection
 	QMatrix4x4 projection;
-	projection.perspective(projectionFovy, 1.0f * width() / height(), 0.1f, 100.0f);
+	projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
 	m_shader.setUniformValue("mvp", projection * view);
-	if (!m_meshVertxArray.isEmpty())
-	{
-		QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); Q_UNUSED(vao_bind);
-		//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
-		glDrawArrays(GL_TRIANGLES, 0, m_meshVertxArray.size());
-	}
+
+	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
+	glDrawArrays(GL_TRIANGLES, 0, m_meshVertxArray.size());
+
 	m_shader.release();
+
 
 }
 
@@ -273,7 +224,7 @@ void ViewGLWidget::initShader()
 //}
 
 
-void ViewGLWidget::drawMesh(Triangle_mesh& inputMesh)
+void ViewGLWidget::fillMeshDataToArray(Triangle_mesh& inputMesh)
 {
 	m_meshVertxArray.clear();
 	//traverse each face of the mesh
@@ -297,10 +248,26 @@ void ViewGLWidget::drawMesh(Triangle_mesh& inputMesh)
 			Point p = inputMesh.point(*fv_ccw_it);
 			QVector3D v3(p[0], p[1], p[2]);
 			m_meshVertxArray.push_back(v3);
-			//qDebug() << p[0] << "," << p[1] << "," << p[2];
 			index++;
 		}
 
 	}
 
+	//update vbo data
+	m_vbo.bind();
+	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	m_shader.enableAttributeArray(0);
+	m_vbo.release();
+
+
+
+	/*m_vbo.bind();
+	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	m_shader.enableAttributeArray(0);
+	m_vbo.release();*/
+
+
+	update();
 }

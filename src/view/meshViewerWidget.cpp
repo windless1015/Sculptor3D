@@ -9,7 +9,7 @@ MeshViewerWidget::MeshViewerWidget(QWidget* parent)
 
 }
 
-void MeshViewerWidget::open_mesh_gui(QString fname)
+void MeshViewerWidget::displayMesh(QString fname)
 {
 	m_triMesh.request_vertex_normals();
 	if (!m_triMesh.has_vertex_normals())
@@ -22,7 +22,7 @@ void MeshViewerWidget::open_mesh_gui(QString fname)
 	{
 		int numFace = m_triMesh.n_faces();
 		int numVert = m_triMesh.n_vertices();
-		drawMesh(m_triMesh);
+		fillMeshDataToArray(m_triMesh);
 
 		if (!opt.check(OpenMesh::IO::Options::VertexNormal))
 		{

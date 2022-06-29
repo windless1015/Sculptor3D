@@ -16,7 +16,8 @@ public:
 
 	//void setOptions(const OpenMesh::IO::Options& opts) { _options = opts; }
 
-	void open_mesh_gui(QString fname);
+public slots:
+	void displayMesh(QString fname);
 
 private:
 	Triangle_mesh m_triMesh;

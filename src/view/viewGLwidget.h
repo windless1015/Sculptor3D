@@ -27,7 +27,7 @@ protected:
 	void wheelEvent(QWheelEvent *event) override;
 
 public:
-	virtual void drawMesh(Triangle_mesh& inputMesh);
+	virtual void fillMeshDataToArray(Triangle_mesh& inputMesh);
 
 private:
 	void initShader();

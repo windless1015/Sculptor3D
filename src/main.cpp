@@ -5,7 +5,6 @@
 #include <QOffscreenSurface>
 #include "view\mainWindow.h"
 
-
 int main (int argc, char** argv)
 {
 	QGuiApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
@@ -18,6 +17,7 @@ int main (int argc, char** argv)
 	QSurfaceFormat::setDefaultFormat(fmt);
 
 	MainWindow w;
+	w.resize(800, 500);
 	w.show();
 	return app.exec();
 }
