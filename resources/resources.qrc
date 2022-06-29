@@ -9,5 +9,6 @@
         <file>shader/sphere.vert</file>
 		<file>container2_specular.png</file>
 		<file>container2.png</file>
+		<file>sculptor3D.png</file>
     </qresource>
 </RCC>
