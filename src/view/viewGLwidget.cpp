@@ -51,7 +51,9 @@ void ViewGLWidget::initializeGL()
 
 	initializeOpenGLFunctions();
 	//set the background color of the opengl window
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	//glClearColor(0.5f, 0.54f, 0.527f, 1.0f);
+	float rgb[3] = { 220,220,220};
+	glClearColor(rgb[0] / 256.0f, rgb[1] / 256.0f, rgb[2] / 256.0f, 1.0f);
 
 	initShader();
 
@@ -117,7 +119,7 @@ void ViewGLWidget::paintGL()
 	view.rotate(rotationQuat);
 	//perspective projection
 	QMatrix4x4 projection;
-	projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
+	projection.perspective(projectionFovy, 1.0f * width() / height(), 0.1f, 100.0f);
 	m_shader.setUniformValue("mvp", projection * view);
 
 	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
@@ -165,18 +167,15 @@ void ViewGLWidget::mouseMoveEvent(QMouseEvent *event)
 void ViewGLWidget::wheelEvent(QWheelEvent *event)
 {
 	event->accept();
-	//fovy越小，模型看起来越大
 	if (event->delta() < 0) {
-		//鼠标向下滑动为-，这里作为zoom out
-		projectionFovy += 1.0f;
-		if (projectionFovy > 300)
-			projectionFovy = 300;
+		projectionFovy += 2.0f;
+		if (projectionFovy > 500)
+			projectionFovy = 500;
 	}
 	else {
-		//鼠标向上滑动为+，这里作为zoom in
-		projectionFovy -= 1.0f;
-		if (projectionFovy < 0.1)
-			projectionFovy = 0.1;
+		projectionFovy -= 2.0f;
+		if (projectionFovy < 1)
+			projectionFovy = 1;
 	}
 	update();
 }
@@ -259,15 +258,6 @@ void ViewGLWidget::fillMeshDataToArray(Triangle_mesh& inputMesh)
 	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
-
-
-
-	/*m_vbo.bind();
-	m_vbo.allocate((void *)m_meshVertxArray.data(), sizeof(GLfloat) * m_meshVertxArray.size() * 3);
-	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
-	m_shader.enableAttributeArray(0);
-	m_vbo.release();*/
-
 
 	update();
 }

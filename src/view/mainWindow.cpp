@@ -11,6 +11,7 @@
 #include "mainWindow.h"
 #include "meshViewerWidget.h"
 #include "infoWidget.h"
+#include "toolWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow)
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	m_meshView3DWidget = new MeshViewerWidget(this);
 	m_infoWidget = new InfoWidget(this);
+	m_toolWidget = new ToolWidget(this);
 	initializeUI();
 }
 
@@ -38,38 +40,33 @@ void MainWindow::initializeUI()
 	connect(m_actionGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateItem(QAction*)));
 
 	QAction *actionOpen = new QAction("OpenFile", m_actionGroup);
+	actionOpen->setIcon(QIcon(":/openFolder.png"));
 	ui->menuFile->addAction(actionOpen);
 
 	QAction *actionNewMesh = new QAction("NewMesh", m_actionGroup);
+	actionNewMesh->setIcon(QIcon(":/newMesh.png"));
 	ui->menuFile->addAction(actionNewMesh);
 
+	QAction *actionSave = new QAction("Save", m_actionGroup);
+	actionSave->setIcon(QIcon(":/save.png"));
+	ui->menuFile->addAction(actionSave);
 
-	QScrollArea* scrollArea = new QScrollArea;
-	//QTabWidget*  tabWidget = new QTabWidget;
+	QAction *actionQuit = new QAction("Quit", m_actionGroup);
+	actionQuit->setIcon(QIcon(":/quit.png"));
+	ui->menuFile->addAction(actionQuit);
 
-	//tabWidget->addTab(this->initializeToolTipTab(), QObject::tr("Keys"));
-	//tabWidget->addTab(&this->scene, QObject::tr("Scene"));
-	scrollArea->setWidgetResizable(true);
-	//scrollArea->setWidget(tabWidget);
-
-
-	m_infoWidget->setWindowTitle("Info");
-	m_infoWidget->setWidget(scrollArea);
-	m_infoWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
-	m_infoWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	QAction *actionAbout = new QAction("About", m_actionGroup);
+	ui->menuHelp->addAction(actionAbout);
 
 	QHBoxLayout* horizontalLayout = new QHBoxLayout();
+	horizontalLayout->addWidget(m_toolWidget);
 	horizontalLayout->addWidget(m_meshView3DWidget);// 3d widget
 	horizontalLayout->addWidget(m_infoWidget);
 	//set the stretch factor of 3d widget and infowidget, 3:1, [   ][] or the display mode will be [][]
+	horizontalLayout->setStretchFactor(m_infoWidget, 1);
 	horizontalLayout->setStretchFactor(m_meshView3DWidget, 3);
 	horizontalLayout->setStretchFactor(m_infoWidget, 1);
 	ui->centralwidget->setLayout(horizontalLayout);
-
-
-	//m_meshView3DWidget->displayMesh("D:/Sphere.stl");
-
-
 }
 
 
@@ -86,5 +83,19 @@ void MainWindow::updateItem(QAction *action)
 	if (action->text() == "NewMesh") {
 		QMessageBox::information(NULL, "Title", "NewMesh",
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+	}
+	if (action->text() == "Save") {
+		QMessageBox::information(NULL, "Title", "Save",
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+	}
+	if (action->text() == "Quit") {
+		QApplication* app;
+		app->exit(0);
+	}
+	if (action->text() == "About") {
+		QString text = QString("Sculptor3D 1.0.0" " - ") + QObject::tr("a simple 3D modelling application") +
+			QString("\n\n") + QString("Copyright @ 2020-2022 Alex") + QString("\n\n") +
+			QObject::tr("Use and redistribute under the terms of the GNU General Public License");
+		QMessageBox::about(this, QObject::tr("About Sculptor3D"), text);
 	}
 }

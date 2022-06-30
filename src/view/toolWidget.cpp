@@ -1,10 +1,9 @@
-﻿#include "infoWidget.h"
-#include "ui_infowidget.h"
+﻿#include "toolWidget.h"
+#include "ui_toolwidget.h"
 #include <QScrollArea>
 
-
-InfoWidget::InfoWidget(QWidget *parent)
-	: QDockWidget(parent), ui(new Ui::InfoWidget)
+ToolWidget::ToolWidget(QWidget *parent)
+	: QDockWidget(parent), ui(new Ui::ToolWidget)
 {
 	ui->setupUi(this);
 
@@ -16,16 +15,13 @@ InfoWidget::InfoWidget(QWidget *parent)
 	scrollArea->setWidgetResizable(true);
 	//scrollArea->setWidget(tabWidget);
 
-	this->setWindowTitle("Info");
+	this->setWindowTitle("Tool");
 	this->setWidget(scrollArea);
 	this->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
 	this->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-
-
 }
 
-InfoWidget::~InfoWidget()
+ToolWidget::~ToolWidget()
 {
 	delete ui;
 }
-

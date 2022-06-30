@@ -7,6 +7,7 @@ QT_END_NAMESPACE
 
 class MeshViewerWidget;
 class InfoWidget;
+class ToolWidget;
 class QAction;
 class QActionGroup;
 class MainWindow : public QMainWindow
@@ -24,6 +25,7 @@ private:
 	Ui::MainWindow *ui;
 	MeshViewerWidget* m_meshView3DWidget;
 	InfoWidget* m_infoWidget;
+	ToolWidget* m_toolWidget;
 private:
 	void initializeUI();
 private:
