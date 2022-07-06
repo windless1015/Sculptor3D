@@ -6,22 +6,22 @@
 #include <QScrollArea>
 #include <QMessageBox>
 #include <QFileDialog>
-
 #include "ui_mainwindow.h"
 #include "mainWindow.h"
-#include "meshViewerWidget.h"
+#include "viewGLwidget.h"
 #include "infoWidget.h"
 #include "toolWidget.h"
+#include "src/model/meshDataModel.h"
 
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent), ui(new Ui::MainWindow)
+	: QMainWindow(parent), ui(new Ui::MainWindow), m_meshData(nullptr)
 {
 	ui->setupUi(this);
 
 	this->setWindowTitle("Sculptor3D");
 	this->setWindowIcon(QIcon(":/sculptor3D.png"));
 
-	m_meshView3DWidget = new MeshViewerWidget(this);
+	m_view3DWidget = new ViewGLWidget(this);
 	m_infoWidget = new InfoWidget(this);
 	m_toolWidget = new ToolWidget(this);
 	initializeUI();
@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
 	delete ui;
+	cleanMeshData();
 }
 
 
@@ -60,15 +61,23 @@ void MainWindow::initializeUI()
 
 	QHBoxLayout* horizontalLayout = new QHBoxLayout();
 	horizontalLayout->addWidget(m_toolWidget);
-	horizontalLayout->addWidget(m_meshView3DWidget);// 3d widget
+	horizontalLayout->addWidget(m_view3DWidget);// 3d widget
 	horizontalLayout->addWidget(m_infoWidget);
 	//set the stretch factor of 3d widget and infowidget, 3:1, [   ][] or the display mode will be [][]
 	horizontalLayout->setStretchFactor(m_infoWidget, 1);
-	horizontalLayout->setStretchFactor(m_meshView3DWidget, 3);
+	horizontalLayout->setStretchFactor(m_view3DWidget, 3);
 	horizontalLayout->setStretchFactor(m_infoWidget, 1);
 	ui->centralwidget->setLayout(horizontalLayout);
 }
 
+void MainWindow::cleanMeshData()
+{
+	if (m_meshData)
+	{
+		delete m_meshData;
+		m_meshData = nullptr;
+	}
+}
 
 void MainWindow::updateItem(QAction *action)
 {
@@ -77,7 +86,11 @@ void MainWindow::updateItem(QAction *action)
 		QString fileName = QFileDialog::getOpenFileName(this,
 			("Open File"), "D:/",
 			"Image Files (*.stl *.obj)");
-		m_meshView3DWidget->displayMesh(fileName);
+
+		cleanMeshData();
+		m_meshData = new MeshDataModel();
+		m_meshData->readMesh(fileName); // fill the mesh data model
+		m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
 
 	}
 	if (action->text() == "NewMesh") {

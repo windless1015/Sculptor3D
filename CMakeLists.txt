@@ -24,8 +24,8 @@ SET(SCULPTOR3D_SRCS
 	src/view/viewGLwidget.cpp
 	src/view/mainWindow.cpp
 	src/view/infoWidget.cpp
-	src/view/meshViewerWidget.cpp
 	src/view/toolWidget.cpp
+	src/model/meshDataModel.cpp
 	src/utility/makeGeometries.cpp
 )
 
@@ -33,8 +33,8 @@ SET(SCULPTOR3D_HDRS
 	src/view/viewGLwidget.h
 	src/view/mainWindow.h
 	src/view/infoWidget.h
-	src/view/meshViewerWidget.h
 	src/view/toolWidget.h
+	src/model/meshDataModel.h
 	src/utility/makeGeometries.h
 	src/baseDataTypes.h
 )

@@ -5,11 +5,12 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MeshViewerWidget;
+class ViewGLWidget;
 class InfoWidget;
 class ToolWidget;
 class QAction;
 class QActionGroup;
+class MeshDataModel;
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -23,12 +24,14 @@ private slots:
 	void updateItem(QAction *action);
 private:
 	Ui::MainWindow *ui;
-	MeshViewerWidget* m_meshView3DWidget;
+	ViewGLWidget* m_view3DWidget;
 	InfoWidget* m_infoWidget;
 	ToolWidget* m_toolWidget;
 private:
 	void initializeUI();
+	void cleanMeshData();
 private:
 	QActionGroup* m_actionGroup;
-
+private:
+	MeshDataModel* m_meshData;
 };

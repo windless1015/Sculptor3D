@@ -8,7 +8,7 @@
 #include "src/baseDataTypes.h"
 
 class QMenu;
-
+class MeshDataModel;
 class ViewGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Compatibility
 {
 	Q_OBJECT
@@ -27,7 +27,8 @@ protected:
 	void wheelEvent(QWheelEvent *event) override;
 
 public:
-	virtual void fillMeshDataToArray(Triangle_mesh& inputMesh);
+	void setMeshDataModel(MeshDataModel* mesh);
+	void updateVBOBuffer(const QVector<QVector3D>& vertsArray);
 
 private:
 	void initShader();
@@ -44,11 +45,11 @@ private:
 	QPoint mousePos;
 	QVector3D rotationAxis;
 	QQuaternion rotationQuat;
-	float projectionFovy{ 45.0f };
+	float projectionFactor{ 45.0f };
 	QMenu *m_righMenu;
 	int drawMode{ 0 };
 	bool enableDepthTest{ false };
 	bool enableCullBackFace{ false };
 
-	QVector<QVector3D> m_meshVertxArray;
+	MeshDataModel* m_meshDataInGLWidget;
 };

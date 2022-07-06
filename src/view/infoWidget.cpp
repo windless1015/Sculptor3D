@@ -1,7 +1,7 @@
 ﻿#include "infoWidget.h"
 #include "ui_infowidget.h"
 #include <QScrollArea>
-
+#include <QTableWidget>
 
 InfoWidget::InfoWidget(QWidget *parent)
 	: QDockWidget(parent), ui(new Ui::InfoWidget)
@@ -9,16 +9,20 @@ InfoWidget::InfoWidget(QWidget *parent)
 	ui->setupUi(this);
 
 	QScrollArea* scrollArea = new QScrollArea;
-	//QTabWidget*  tabWidget = new QTabWidget;
+	QTabWidget*  tabWidget = new QTabWidget;
 
-	//tabWidget->addTab(this->initializeToolTipTab(), QObject::tr("Keys"));
-	//tabWidget->addTab(&this->scene, QObject::tr("Scene"));
+	QWidget *testWidget1 = new QWidget();
+	tabWidget->addTab(testWidget1, QObject::tr("test1"));
+	QWidget *testWidget2 = new QWidget();
+	tabWidget->addTab(testWidget2, QObject::tr("test2"));
+	QWidget *testWidget3 = new QWidget();
+	tabWidget->addTab(testWidget3, QObject::tr("test3"));
 	scrollArea->setWidgetResizable(true);
-	//scrollArea->setWidget(tabWidget);
+	scrollArea->setWidget(tabWidget);
 
 	this->setWindowTitle("Info");
 	this->setWidget(scrollArea);
-	this->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
+	this->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetFloatable);
 	this->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
 
