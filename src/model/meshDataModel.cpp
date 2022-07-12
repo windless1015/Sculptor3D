@@ -22,7 +22,8 @@ MeshDataModel::~MeshDataModel()
 void MeshDataModel::readMesh(const QString& fname)
 {
 	m_triMesh.request_vertex_normals();
-	if (!m_triMesh.has_vertex_normals())
+	m_triMesh.request_face_normals();
+	if (!m_triMesh.has_vertex_normals() || !m_triMesh.has_face_normals())
 	{
 		return;
 	}

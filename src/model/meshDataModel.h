@@ -12,6 +12,7 @@ public:
 public:
 	void MeshDataModel::readMesh(const QString& fname);
 	const QVector<QVector3D> *getMeshVertsArr() { return m_meshVertxArray; };
+	const Triangle_mesh& getMesh() { return m_triMesh; } ;
 private:
 	void copyVertsDataToBuff(Triangle_mesh& mesh);
 

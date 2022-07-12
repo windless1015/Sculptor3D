@@ -10,8 +10,9 @@
 ViewGLWidget::ViewGLWidget(QWidget *parent) : 
 	QOpenGLWidget(parent), m_meshDataInGLWidget(nullptr)
 {
-	rotationQuat = QQuaternion::fromAxisAndAngle(1.0f, 0.0f, 0.0f, 90.0f);
 
+	rotationQuat = QQuaternion::fromAxisAndAngle(1.0f, 0.0f, 0.0f, 30.0f);
+	rotationQuat *= QQuaternion::fromAxisAndAngle(0.0f, 1.0f, 0.0f, -10.0f);
 	//右键菜单
 	m_righMenu = new QMenu(this);
 	m_righMenu->addAction("Toggle depth test", [this] {
@@ -80,7 +81,6 @@ void ViewGLWidget::paintGL()
 		return;
 	}
 
-
 	if (enableDepthTest) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -110,14 +110,19 @@ void ViewGLWidget::paintGL()
 	Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
 	m_shader.bind();
 
-	QMatrix4x4 viewMatrix;
-	float radius = 3.0f;
-	viewMatrix.translate(0.0f, 0.0f, -radius);
-	viewMatrix.rotate(rotationQuat);
-	
-	QMatrix4x4 projection;//perspective projection type
+	//观察矩阵
+	QMatrix4x4 view;
+	view.translate(0.0f, 0.0f, -5.0f);
+	view.rotate(rotationQuat);
+	//透视投影
+	QMatrix4x4 projection;
 	projection.perspective(projectionFactor, 1.0f * width() / height(), 0.1f, 100.0f);
-	m_shader.setUniformValue("mvp", projection * viewMatrix);
+	//模型矩阵
+	QMatrix4x4 model;
+
+	//m_shader.setUniformValue("mvp", projection * viewMatrix);
+	m_shader.setUniformValue("mvp", projection * view * model);
+
 
 	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
 	const QVector<QVector3D>* vertsArr = m_meshDataInGLWidget->getMeshVertsArr();
@@ -155,7 +160,7 @@ void ViewGLWidget::mouseMoveEvent(QMouseEvent *event)
 	QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
 	rotationAxis = (rotationAxis + n).normalized();
 	
-	rotationQuat = QQuaternion::fromAxisAndAngle(rotationAxis, 3.0f) * rotationQuat;
+	rotationQuat = QQuaternion::fromAxisAndAngle(rotationAxis, 2.0f) * rotationQuat;
 
 	update();
 }
@@ -181,8 +186,37 @@ void ViewGLWidget::wheelEvent(QWheelEvent *event)
 
 void ViewGLWidget::initShader()
 {
+	static const char *shader_vertex = R"(#version 450 core
+layout (location = 0) in vec3 inPos;
+uniform mat4 mvp;
+void main()
+{
+gl_Position = mvp * vec4(inPos, 1.0);
+})";
+
+static const char *shader_fragment = R"(#version 450 core
+out vec4 fragColor;
+void main()
+{
+fragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f); //set the color with Blue
+})";
+
+	if (!m_shader.addCacheableShaderFromSourceCode(
+		QOpenGLShader::Vertex, shader_vertex)) {
+		qDebug() << "compiler vertex error" << m_shader.log();
+	}
+	if (!m_shader.addCacheableShaderFromSourceCode(
+		QOpenGLShader::Fragment, shader_fragment)) {
+		qDebug() << "compiler fragment error" << m_shader.log();
+	}
+
+	if (!m_shader.link()) {
+		qDebug() << "link shaderprogram error" << m_shader.log();
+	}
+
+
 	//uniform from cpu to gpu
-	if (!m_shader.addCacheableShaderFromSourceFile(
+	/*if (!m_shader.addCacheableShaderFromSourceFile(
 		QOpenGLShader::Vertex, ":/shader/sphere.vert")) {
 		qDebug() << "compiler vertex error" << m_shader.log();
 	}
@@ -193,7 +227,7 @@ void ViewGLWidget::initShader()
 
 	if (!m_shader.link()) {
 		qDebug() << "link shaderprogram error" << m_shader.log();
-	}
+	}*/
 
 }
 
