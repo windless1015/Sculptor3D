@@ -90,7 +90,7 @@ void MainWindow::updateItem(QAction *action)
 		cleanMeshData();
 		m_meshData = new MeshDataModel();
 		m_meshData->readMesh(fileName); // fill the mesh data model
-		//m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
+		m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
 
 	}
 	if (action->text() == "NewMesh") {

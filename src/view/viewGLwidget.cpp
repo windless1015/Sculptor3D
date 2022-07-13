@@ -315,14 +315,127 @@
 
 
 #include "viewGLwidget.h"
+#include "src/model/meshDataModel.h"
 
 // Constructor must call the base class constructor.
 Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	restoreStateFromFile();
 	setAxisIsDrawn(true);
+	m_meshDataPtr = nullptr;
 }
+
+void Viewer::init()
+{
+	bool isIni = initializeOpenGLFunctions();
+
+	initShader();
+
+	m_vao.create();
+	m_vao.bind();
+	m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	m_vbo.create();
+	m_vbo.bind();
+
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat)* 3);
+	m_shader.enableAttributeArray(0);
+	m_vbo.release();
+	m_vao.release();
+}
+
+
 
 void Viewer::draw() 
 {
+	if (!m_meshDataPtr || m_meshDataPtr->getMeshVertsArr()->isEmpty())
+	{
+		return;
+	}
+
+	QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); 
+	Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
+	//m_shader.bind();
 	
+	//////观察矩阵
+	//QMatrix4x4 view;
+	//view.translate(0.0f, 0.0f, -5.0f);
+	////view.rotate(rotationQuat);
+	////透视投影
+	//QMatrix4x4 projection;
+	//projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
+	////模型矩阵
+	//QMatrix4x4 model;
+	////
+	//m_shader.setUniformValue("mvp", projection * view * model);
+	
+	
+	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
+	const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
+	glDrawArrays(GL_TRIANGLES, 0, vertsArr->size());
+	//m_shader.release();
+}
+
+void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
+{
+	//update vbo data
+	m_vbo.bind();
+	m_vbo.allocate((void *)vertsArray.data(), sizeof(GLfloat) * vertsArray.size() * 3);
+	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+	m_shader.enableAttributeArray(0);
+	m_vbo.release();
+}
+
+void Viewer::setMeshDataModel(MeshDataModel* mesh)
+{ 
+	m_meshDataPtr = mesh;
+	const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
+	updateVBOBuffer(*vertsArr);
+	
+	update(); // make it effective and opengl will call paintgl
+}
+
+void Viewer::initShader()
+{
+	static const char *shader_vertex = R"(#version 450 core
+layout (location = 0) in vec3 inPos;
+uniform mat4 mvp;
+void main()
+{
+gl_Position = mvp * vec4(inPos, 1.0);
+})";
+
+static const char *shader_fragment = R"(#version 450 core
+out vec4 fragColor;
+void main()
+{
+fragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f); //set the color with Blue
+})";
+
+	if (!m_shader.addCacheableShaderFromSourceCode(
+		QOpenGLShader::Vertex, shader_vertex)) {
+		qDebug() << "compiler vertex error" << m_shader.log();
+	}
+	if (!m_shader.addCacheableShaderFromSourceCode(
+		QOpenGLShader::Fragment, shader_fragment)) {
+		qDebug() << "compiler fragment error" << m_shader.log();
+	}
+
+	if (!m_shader.link()) {
+		qDebug() << "link shaderprogram error" << m_shader.log();
+	}
+
+
+	//uniform from cpu to gpu
+	/*if (!m_shader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Vertex, ":/shader/sphere.vert")) {
+		qDebug() << "compiler vertex error" << m_shader.log();
+	}
+	if (!m_shader.addCacheableShaderFromSourceFile(
+		QOpenGLShader::Fragment, ":/shader/sphere.frag")) {
+		qDebug() << "compiler fragment error" << m_shader.log();
+	}
+
+	if (!m_shader.link()) {
+		qDebug() << "link shaderprogram error" << m_shader.log();
+	}*/
+
 }

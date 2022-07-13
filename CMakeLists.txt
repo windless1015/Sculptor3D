@@ -16,7 +16,7 @@ SET(CMAKE_AUTOUIC_SEARCH_PATHS src/ui)
 #add USE_MATH_DEFINES macro definition
 ADD_DEFINITIONS(-D_USE_MATH_DEFINES)
 
-FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Gui OpenGL REQUIRED)
+FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Gui OpenGL Xml REQUIRED)
 FIND_PACKAGE(OpenMesh REQUIRED)
 
 #group source files, header files, resource files and ui files
@@ -76,6 +76,7 @@ target_link_libraries( ${CMAKE_PROJECT_NAME}
   Qt5::Widgets  
   Qt5::Gui
   Qt5::OpenGL
+  Qt5::Xml
   debug OpenMeshCored OpenMeshToolsd
   optimized OpenMeshCore OpenMeshTools
   debug ${QGLVIEWER_DIR}/lib/QGLViewerd2.lib

@@ -56,10 +56,25 @@
 //};
 
 
-class Viewer : public QGLViewer {
+class MeshDataModel;
+class Viewer : public QGLViewer, protected QOpenGLFunctions_4_5_Compatibility
+{
 public:
 	Viewer(QWidget *parent);
+protected:
+	virtual void init();
 
+public:
+	void setMeshDataModel(MeshDataModel* mesh);
+	void updateVBOBuffer(const QVector<QVector3D>& vertsArray);
 protected:
 	virtual void draw();
+private:
+	void Viewer::initShader();
+private:
+	QOpenGLShaderProgram m_shader;
+	QOpenGLVertexArrayObject m_vao;
+	QOpenGLBuffer m_vbo;
+
+	MeshDataModel* m_meshDataPtr;
 };
