@@ -57,24 +57,35 @@
 
 
 class MeshDataModel;
+class QMenu;
 class Viewer : public QGLViewer, protected QOpenGLFunctions_4_5_Compatibility
 {
 public:
 	Viewer(QWidget *parent);
+	~Viewer();
 protected:
 	virtual void init();
+	virtual void postDraw();
+	virtual void draw();
+	void mousePressEvent(QMouseEvent *event) override;
 
 public:
 	void setMeshDataModel(MeshDataModel* mesh);
 	void updateVBOBuffer(const QVector<QVector3D>& vertsArray);
-protected:
-	virtual void draw();
+	
 private:
-	void Viewer::initShader();
+	void initShader();
+	void drawCornerAxis();
 private:
 	QOpenGLShaderProgram m_shader;
 	QOpenGLVertexArrayObject m_vao;
 	QOpenGLBuffer m_vbo;
 
 	MeshDataModel* m_meshDataPtr;
+
+
+	QMenu *m_righMenu;
+	int drawMode{ 0 };
+	bool enableDepthTest{ false };
+	bool enableCullBackFace{ false };
 };

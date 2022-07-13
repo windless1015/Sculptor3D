@@ -312,21 +312,56 @@
 //	m_vbo.release();
 //}
 
-
-
+#include <QMouseEvent>
+#include <QMenu>
 #include "viewGLwidget.h"
 #include "src/model/meshDataModel.h"
 
 // Constructor must call the base class constructor.
 Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	restoreStateFromFile();
-	setAxisIsDrawn(true);
 	m_meshDataPtr = nullptr;
+
+
+
+	m_righMenu = new QMenu(this);
+	m_righMenu->addAction("Toggle depth test", [this] {
+		enableDepthTest = !enableDepthTest;
+		update();
+	});
+	m_righMenu->addAction("Toggle cull backface", [this] {
+		enableCullBackFace = !enableCullBackFace;
+		update();
+	});
+	m_righMenu->addAction("Set Fill Mode", [this] {
+		drawMode = 0;
+		update();
+	});
+	m_righMenu->addAction("Set Line Mode", [this] {
+		drawMode = 1;
+		update();
+	});
+	m_righMenu->addAction("Set Point Mode", [this] {
+		drawMode = 2;
+		update();
+	});
+
+
+}
+
+Viewer::~Viewer()
+{
+	if (!isValid())
+		return;
+	makeCurrent();
+	m_vao.destroy();
+	m_vbo.destroy();
+	doneCurrent();
 }
 
 void Viewer::init()
 {
-	bool isIni = initializeOpenGLFunctions();
+	initializeOpenGLFunctions();
 
 	initShader();
 
@@ -340,6 +375,17 @@ void Viewer::init()
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
 	m_vao.release();
+
+
+	// Increase the material shininess, so that the difference between
+	// the two versions of the spiral is more visible.
+	/*glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+	GLfloat specular_color[4] = { 0.8f, 0.8f, 0.8f, 1.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_color);*/
+
+	setAxisIsDrawn(true);
+	//setFPSIsDisplayed(true);
+	setGridIsDrawn(true);
 }
 
 
@@ -351,12 +397,45 @@ void Viewer::draw()
 		return;
 	}
 
+
+
+	if (enableDepthTest) {
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+	if (enableCullBackFace) {
+		glEnable(GL_CULL_FACE);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+	if (drawMode == 0) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	else if (drawMode == 1)  //line mode
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glPointSize(4.0f);
+	}
+
+
 	QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); 
 	Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
 	//m_shader.bind();
 	
 	//////观察矩阵
-	//QMatrix4x4 view;
+
+	/*GLfloat mvp[16];
+	this->camera()->getModelViewProjectionMatrix(mvp);
+	QMatrix4x4 MVPMatrix(mvp);
+	MVPMatrix.normalMatrix();*/
+
 	//view.translate(0.0f, 0.0f, -5.0f);
 	////view.rotate(rotationQuat);
 	////透视投影
@@ -365,7 +444,8 @@ void Viewer::draw()
 	////模型矩阵
 	//QMatrix4x4 model;
 	////
-	//m_shader.setUniformValue("mvp", projection * view * model);
+
+	//m_shader.setUniformValue("mvp", MVPMatrix);
 	
 	
 	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
@@ -438,4 +518,81 @@ fragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f); //set the color with Blue
 		qDebug() << "link shaderprogram error" << m_shader.log();
 	}*/
 
+}
+
+void Viewer::mousePressEvent(QMouseEvent *event)
+{
+	event->accept();
+	if (event->button() == Qt::RightButton) {
+		m_righMenu->popup(QCursor::pos());
+	}
+	//remember to call parent mousePressEvent function
+	QGLViewer::mousePressEvent(event);
+}
+
+// The thumbnail has to be drawn at the very end to allow a correct
+// display of the visual hints (axes, grid, etc).
+void Viewer::postDraw() {
+	QGLViewer::postDraw();
+	drawCornerAxis();
+}
+
+void Viewer::drawCornerAxis()
+{
+	int viewport[4];
+	int scissor[4];
+
+	// The viewport and the scissor are changed to fit the lower left
+	// corner. Original values are saved.
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
+
+	// Axis viewport size, in pixels
+	const int size = 150;
+	glViewport(0, 0, size, size);
+	glScissor(0, 0, size, size);
+
+	// The Z-buffer is cleared to make the axis appear over the
+	// original image.
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// Tune for best line rendering
+	glDisable(GL_LIGHTING);
+	glLineWidth(3.0);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(-1, 1, -1, 1, -1, 1);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMultMatrixd(camera()->orientation().inverse().matrix());
+
+	glBegin(GL_LINES);
+	glColor3f(1.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(1.0, 0.0, 0.0);
+
+	glColor3f(0.0, 1.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+
+	glColor3f(0.0, 0.0, 1.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 1.0);
+	glEnd();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glEnable(GL_LIGHTING);
+
+	// The viewport and the scissor are restored.
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 }
