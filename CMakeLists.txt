@@ -4,6 +4,7 @@ PROJECT(Sculptor3D LANGUAGES CXX)
 #set qt5 and openmesh libraries directory
 SET(Qt5_DIR D:/Librarys/Qt/Qt5.12.10/5.12.10/msvc2015_64/lib/cmake/Qt5)
 SET(OpenMesh_DIR D:/Librarys/OpenMesh8.1/share/OpenMesh/cmake)
+SET(QGLVIEWER_DIR D:/Librarys/libQGLViewer)
 
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} Qt5_DIR OpenMesh_DIR)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -61,10 +62,12 @@ ADD_EXECUTABLE( ${CMAKE_PROJECT_NAME}
 INCLUDE_DIRECTORIES(
 	${OpenMesh_INCLUDE_DIRS}
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${QGLVIEWER_DIR}/include
 )
 
 TARGET_LINK_DIRECTORIES(${CMAKE_PROJECT_NAME} PUBLIC
 	D:/Librarys/OpenMesh8.1/lib
+	${QGLVIEWER_DIR}/lib
 )
 
 #libraries needed for linkage when compile
@@ -75,4 +78,6 @@ target_link_libraries( ${CMAKE_PROJECT_NAME}
   Qt5::OpenGL
   debug OpenMeshCored OpenMeshToolsd
   optimized OpenMeshCore OpenMeshTools
+  debug ${QGLVIEWER_DIR}/lib/QGLViewerd2.lib
+  optimized ${QGLVIEWER_DIR}/lib/QGLViewer2.lib
 )
