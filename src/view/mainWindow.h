@@ -5,7 +5,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class ViewGLWidget;
+//class ViewGLWidget;
+class Viewer;
 class InfoWidget;
 class ToolWidget;
 class QAction;
@@ -24,7 +25,8 @@ private slots:
 	void updateItem(QAction *action);
 private:
 	Ui::MainWindow *ui;
-	ViewGLWidget* m_view3DWidget;
+	//ViewGLWidget* m_view3DWidget;
+	Viewer* m_view3DWidget;
 	InfoWidget* m_infoWidget;
 	ToolWidget* m_toolWidget;
 private:

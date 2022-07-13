@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
 	this->setWindowTitle("Sculptor3D");
 	this->setWindowIcon(QIcon(":/sculptor3D.png"));
 
-	m_view3DWidget = new ViewGLWidget(this);
+	m_view3DWidget = new Viewer(this);
 	m_infoWidget = new InfoWidget(this);
 	m_toolWidget = new ToolWidget(this);
 	initializeUI();
@@ -90,7 +90,7 @@ void MainWindow::updateItem(QAction *action)
 		cleanMeshData();
 		m_meshData = new MeshDataModel();
 		m_meshData->readMesh(fileName); // fill the mesh data model
-		m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
+		//m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
 
 	}
 	if (action->text() == "NewMesh") {
