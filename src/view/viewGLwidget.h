@@ -72,7 +72,8 @@ protected:
 public:
 	void setMeshDataModel(MeshDataModel* mesh);
 	void updateVBOBuffer(const QVector<QVector3D>& vertsArray);
-	
+	void toggleCornerAxisDrawn();
+
 private:
 	void initShader();
 	void drawCornerAxis();
@@ -88,4 +89,6 @@ private:
 	int drawMode{ 0 };
 	bool enableDepthTest{ false };
 	bool enableCullBackFace{ false };
+	bool m_isDrawnCornerAxis;
+
 };

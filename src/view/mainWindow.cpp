@@ -72,6 +72,10 @@ void MainWindow::initializeUI()
 	actionFPS->setIcon(QIcon(":/fps.png"));
 	ui->menuView->addAction(actionFPS);
 
+	QAction *actionCornerAxis = new QAction("Corner Axis", m_actionGroup);
+	actionCornerAxis->setIcon(QIcon(":/cornerAxis.png"));
+	ui->menuView->addAction(actionCornerAxis);
+
 	QHBoxLayout* horizontalLayout = new QHBoxLayout();
 	horizontalLayout->addWidget(m_toolWidget);
 	horizontalLayout->addWidget(m_view3DWidget);// 3d widget
@@ -132,5 +136,8 @@ void MainWindow::updateItem(QAction *action)
 	}
 	if (action->text() == "FPS") {
 		m_view3DWidget->toggleFPSIsDisplayed();
+	}
+	if (action->text() == "Corner Axis") {
+		m_view3DWidget->toggleCornerAxisDrawn();
 	}
 }

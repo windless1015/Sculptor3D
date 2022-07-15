@@ -321,7 +321,7 @@
 Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	restoreStateFromFile();
 	m_meshDataPtr = nullptr;
-
+	m_isDrawnCornerAxis = true;
 
 
 	m_righMenu = new QMenu(this);
@@ -397,8 +397,6 @@ void Viewer::draw()
 		return;
 	}
 
-
-
 	if (enableDepthTest) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -429,7 +427,7 @@ void Viewer::draw()
 	Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
 	//m_shader.bind();
 	
-	//////观察矩阵
+	//////view matrix
 
 	/*GLfloat mvp[16];
 	this->camera()->getModelViewProjectionMatrix(mvp);
@@ -438,10 +436,10 @@ void Viewer::draw()
 
 	//view.translate(0.0f, 0.0f, -5.0f);
 	////view.rotate(rotationQuat);
-	////透视投影
+	////project matrix
 	//QMatrix4x4 projection;
 	//projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-	////模型矩阵
+	////model matrix
 	//QMatrix4x4 model;
 	////
 
@@ -471,6 +469,11 @@ void Viewer::setMeshDataModel(MeshDataModel* mesh)
 	updateVBOBuffer(*vertsArr);
 	
 	update(); // make it effective and opengl will call paintgl
+}
+
+void Viewer::toggleCornerAxisDrawn()
+{
+	m_isDrawnCornerAxis = !m_isDrawnCornerAxis;
 }
 
 void Viewer::initShader()
@@ -534,7 +537,8 @@ void Viewer::mousePressEvent(QMouseEvent *event)
 // display of the visual hints (axes, grid, etc).
 void Viewer::postDraw() {
 	QGLViewer::postDraw();
-	drawCornerAxis();
+	if(m_isDrawnCornerAxis)
+		drawCornerAxis();
 }
 
 void Viewer::drawCornerAxis()
