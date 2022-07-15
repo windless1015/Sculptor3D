@@ -2,7 +2,7 @@
 #include <QDockWidget>
 
 namespace Ui {
-	class ToolWidget;
+	class toolWidget;
 }
 
 class ToolWidget : public QDockWidget
@@ -12,5 +12,7 @@ public:
 	ToolWidget(QWidget *parent = nullptr);
 	~ToolWidget();
 private:
-	Ui::ToolWidget *ui;
+	void addButtonsUI();
+private:
+	Ui::toolWidget *ui;
 };

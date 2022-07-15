@@ -76,15 +76,19 @@ void MainWindow::initializeUI()
 	actionCornerAxis->setIcon(QIcon(":/cornerAxis.png"));
 	ui->menuView->addAction(actionCornerAxis);
 
-	QHBoxLayout* horizontalLayout = new QHBoxLayout();
-	horizontalLayout->addWidget(m_toolWidget);
-	horizontalLayout->addWidget(m_view3DWidget);// 3d widget
-	horizontalLayout->addWidget(m_infoWidget);
-	//set the stretch factor of 3d widget and infowidget, 3:1, [   ][] or the display mode will be [][]
-	horizontalLayout->setStretchFactor(m_infoWidget, 1);
-	horizontalLayout->setStretchFactor(m_view3DWidget, 3);
-	horizontalLayout->setStretchFactor(m_infoWidget, 1);
-	ui->centralwidget->setLayout(horizontalLayout);
+	//QHBoxLayout* horizontalLayout = new QHBoxLayout();
+	//horizontalLayout->addWidget(m_toolWidget);
+	//horizontalLayout->addWidget(m_view3DWidget);// 3d widget
+	//horizontalLayout->addWidget(m_infoWidget);
+	////set the stretch factor of 3d widget and infowidget, 3:1, [   ][] or the display mode will be [][]
+	//horizontalLayout->setStretchFactor(m_infoWidget, 1);
+	//horizontalLayout->setStretchFactor(m_view3DWidget, 3);
+	//horizontalLayout->setStretchFactor(m_infoWidget, 1);
+	//ui->centralwidget->setLayout(horizontalLayout);
+
+	setCentralWidget(m_view3DWidget);
+	addDockWidget(Qt::LeftDockWidgetArea, m_toolWidget);
+	addDockWidget(Qt::RightDockWidgetArea, m_infoWidget);
 }
 
 void MainWindow::cleanMeshData()

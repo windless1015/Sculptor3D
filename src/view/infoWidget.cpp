@@ -24,8 +24,8 @@ InfoWidget::InfoWidget(QWidget *parent)
 	this->setWidget(scrollArea);
 	this->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetFloatable);
 	this->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-
-
+	this->setMinimumWidth(150);
+	this->setMaximumWidth(200);
 }
 
 InfoWidget::~InfoWidget()

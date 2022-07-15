@@ -16,5 +16,6 @@
         <file>axis.png</file>
         <file>plain.png</file>
         <file>fps.png</file>
+        <file>cornerAxis.png</file>
     </qresource>
 </RCC>

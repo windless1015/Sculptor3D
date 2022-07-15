@@ -43,6 +43,7 @@ SET(SCULPTOR3D_HDRS
 SET(UI_FILES
 	src/ui/mainwindow.ui
 	src/ui/infoWidget.ui
+	src/ui/toolWidget.ui
 )
 
 SET(QRC_SOURCE_FILES 
