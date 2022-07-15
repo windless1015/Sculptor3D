@@ -1,19 +1,20 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-    <qresource>
+<RCC>
+    <qresource prefix="/">
         <file>shader/lampShader.frag</file>
         <file>shader/lampShader.vert</file>
-		<file>shader/lightShader.frag</file>
+        <file>shader/lightShader.frag</file>
         <file>shader/lightShader.vert</file>
-		<file>shader/sphere.frag</file>
+        <file>shader/sphere.frag</file>
         <file>shader/sphere.vert</file>
-		<file>container2_specular.png</file>
-		<file>container2.png</file>
-		<file>sculptor3D.png</file>
-		<file>openFolder.png</file>
-		<file>quit.png</file>
-		<file>save.png</file>
-		<file>newMesh.png</file>
-		
+        <file>container2_specular.png</file>
+        <file>container2.png</file>
+        <file>sculptor3D.png</file>
+        <file>openFolder.png</file>
+        <file>quit.png</file>
+        <file>save.png</file>
+        <file>newMesh.png</file>
+        <file>axis.png</file>
+        <file>plain.png</file>
+        <file>fps.png</file>
     </qresource>
 </RCC>

@@ -384,7 +384,7 @@ void Viewer::init()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_color);*/
 
 	setAxisIsDrawn(true);
-	//setFPSIsDisplayed(true);
+	setFPSIsDisplayed(true);
 	setGridIsDrawn(true);
 }
 

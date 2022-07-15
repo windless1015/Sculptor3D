@@ -28,7 +28,7 @@
      <string>File</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
     </property>
@@ -44,7 +44,7 @@
     </property>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
    <addaction name="menuTool"/>
    <addaction name="menuHelp"/>
   </widget>

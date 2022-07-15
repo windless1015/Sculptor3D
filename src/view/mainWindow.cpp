@@ -59,6 +59,19 @@ void MainWindow::initializeUI()
 	QAction *actionAbout = new QAction("About", m_actionGroup);
 	ui->menuHelp->addAction(actionAbout);
 
+	//view group
+	QAction *actionAxis = new QAction("Axis", m_actionGroup);
+	actionAxis->setIcon(QIcon(":/axis.png"));
+	ui->menuView->addAction(actionAxis);
+
+	QAction *actionPlain = new QAction("Plain", m_actionGroup);
+	actionPlain->setIcon(QIcon(":/plain.png"));
+	ui->menuView->addAction(actionPlain);
+
+	QAction *actionFPS = new QAction("FPS", m_actionGroup);
+	actionFPS->setIcon(QIcon(":/fps.png"));
+	ui->menuView->addAction(actionFPS);
+
 	QHBoxLayout* horizontalLayout = new QHBoxLayout();
 	horizontalLayout->addWidget(m_toolWidget);
 	horizontalLayout->addWidget(m_view3DWidget);// 3d widget
@@ -110,5 +123,14 @@ void MainWindow::updateItem(QAction *action)
 			QString("\n\n") + QString("Copyright @ 2020-2022 Alex") + QString("\n\n") +
 			QObject::tr("Use and redistribute under the terms of the GNU General Public License");
 		QMessageBox::about(this, QObject::tr("About Sculptor3D"), text);
+	}
+	if (action->text() == "Axis") {
+		m_view3DWidget->toggleAxisIsDrawn();
+	}
+	if (action->text() == "Plain") {
+		m_view3DWidget->toggleGridIsDrawn();
+	}
+	if (action->text() == "FPS") {
+		m_view3DWidget->toggleFPSIsDisplayed();
 	}
 }
