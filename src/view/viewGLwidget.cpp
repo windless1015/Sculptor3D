@@ -662,6 +662,36 @@ void Viewer::drawSphere()
 	// tramsform modelview matrix
 	//glTranslatef(0, 0, -cameraDistance);
 
+
+
+	if (enableDepthTest) {
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+	if (enableCullBackFace) {
+		glEnable(GL_CULL_FACE);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+	if (drawMode == 0) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	else if (drawMode == 1)  //line mode
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glPointSize(4.0f);
+	}
+
+
+
+
 	// set material
 	float ambient[] = { 0.5f, 0.5f, 0.5f, 1 };
 	float diffuse[] = { 0.7f, 0.7f, 0.7f, 1 };
