@@ -314,6 +314,7 @@
 
 #include <QMouseEvent>
 #include <QMenu>
+#include <QMessageBox>
 #include "viewGLwidget.h"
 #include "src/model/meshDataModel.h"
 
@@ -346,7 +347,7 @@ Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 		update();
 	});
 
-
+	sphere2.set(1.0f, 36, 18);
 }
 
 Viewer::~Viewer()
@@ -363,7 +364,7 @@ void Viewer::init()
 {
 	initializeOpenGLFunctions();
 
-	initShader();
+	/*initShader();
 
 	m_vao.create();
 	m_vao.bind();
@@ -374,8 +375,13 @@ void Viewer::init()
 	m_shader.setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(GLfloat)* 3);
 	m_shader.enableAttributeArray(0);
 	m_vbo.release();
-	m_vao.release();
+	m_vao.release();*/
 
+
+	iniGL();
+
+
+	m_textFont.setPointSize(30);
 
 	// Increase the material shininess, so that the difference between
 	// the two versions of the spiral is more visible.
@@ -386,70 +392,55 @@ void Viewer::init()
 	setAxisIsDrawn(true);
 	setFPSIsDisplayed(true);
 	setGridIsDrawn(true);
+	//setBackgroundColor(QColor(220, 215, 211));
+	setTextIsEnabled(true); //open text display
+
+
+
+	glLineWidth(3.0);
+	glPointSize(10.0);
 }
 
+void Viewer::drawWithNames()
+{
+	glPushName(0);
+	drawSphere();
+	glPopName();
+}
 
+void Viewer::postSelection(const QPoint &point) {
+	// Compute orig and dir, used to draw a representation of the intersecting
+	// line
+	camera()->convertClickToLine(point, orig, dir);
+
+	// Find the selectedPoint coordinates, using camera()->pointUnderPixel().
+	bool found;
+	selectedPoint = camera()->pointUnderPixel(point, found);
+	selectedPoint -= 0.01f * dir; // Small offset to make point clearly visible.
+								  // Note that "found" is different from (selectedObjectId()>=0) because of the
+								  // size of the select region.
+
+
+	if (selectedName() == -1)
+		QMessageBox::information(this, "No selection",
+			"No object selected under pixel " +
+			QString::number(point.x()) + "," +
+			QString::number(point.y()));
+	else {
+		QMessageBox::information(
+			this, "Selection",
+			"Spiral number " + QString::number(selectedName()) +
+			" selected under pixel " + QString::number(point.x()) + "," +
+			QString::number(point.y()));
+			qDebug() << "select point: " << selectedPoint.x << ", " << selectedPoint.y << ", " << selectedPoint.z;
+	}
+}
 
 void Viewer::draw() 
 {
-	if (!m_meshDataPtr || m_meshDataPtr->getMeshVertsArr()->isEmpty())
-	{
-		return;
-	}
-
-	if (enableDepthTest) {
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-	else {
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-	if (enableCullBackFace) {
-		glEnable(GL_CULL_FACE);
-	}
-	else {
-		glDisable(GL_CULL_FACE);
-	}
-	if (drawMode == 0) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-	else if (drawMode == 1)  //line mode
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		glPointSize(4.0f);
-	}
-
-
-	QOpenGLVertexArrayObject::Binder vao_bind(&m_vao); 
-	Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
-	//m_shader.bind();
+	drawText(50, 50, "FDU",m_textFont);
+	drawSphere();
 	
-	//////view matrix
-
-	/*GLfloat mvp[16];
-	this->camera()->getModelViewProjectionMatrix(mvp);
-	QMatrix4x4 MVPMatrix(mvp);
-	MVPMatrix.normalMatrix();*/
-
-	//view.translate(0.0f, 0.0f, -5.0f);
-	////view.rotate(rotationQuat);
-	////project matrix
-	//QMatrix4x4 projection;
-	//projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-	////model matrix
-	//QMatrix4x4 model;
-	////
-
-	//m_shader.setUniformValue("mvp", MVPMatrix);
-	
-	
-	//m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
-	const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
-	glDrawArrays(GL_TRIANGLES, 0, vertsArr->size());
-	//m_shader.release();
 }
 
 void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
@@ -464,11 +455,11 @@ void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
 
 void Viewer::setMeshDataModel(MeshDataModel* mesh)
 { 
-	m_meshDataPtr = mesh;
-	const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
-	updateVBOBuffer(*vertsArr);
-	
-	update(); // make it effective and opengl will call paintgl
+	//m_meshDataPtr = mesh;
+	//const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
+	//updateVBOBuffer(*vertsArr);
+	//
+	//update(); // make it effective and opengl will call paintgl
 }
 
 void Viewer::toggleCornerAxisDrawn()
@@ -599,4 +590,140 @@ void Viewer::drawCornerAxis()
 	// The viewport and the scissor are restored.
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+}
+
+void Viewer::drawSphere(bool isFromFile)
+{
+	//if (!m_meshDataPtr || m_meshDataPtr->getMeshVertsArr()->isEmpty())
+	//{
+	//	return;
+	//}
+
+	//if (enableDepthTest) {
+	//	glEnable(GL_DEPTH_TEST);
+	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//}
+	//else {
+	//	glClear(GL_COLOR_BUFFER_BIT);
+	//}
+	//if (enableCullBackFace) {
+	//	glEnable(GL_CULL_FACE);
+	//}
+	//else {
+	//	glDisable(GL_CULL_FACE);
+	//}
+	//if (drawMode == 0) {
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//}
+	//else if (drawMode == 1)  //line mode
+	//{
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//}
+	//else {
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+	//	glPointSize(4.0f);
+	//}
+
+
+	//QOpenGLVertexArrayObject::Binder vao_bind(&m_vao);
+	//Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
+	////m_shader.bind();
+
+	////////view matrix
+
+	///*GLfloat mvp[16];
+	//this->camera()->getModelViewProjectionMatrix(mvp);
+	//QMatrix4x4 MVPMatrix(mvp);
+	//MVPMatrix.normalMatrix();*/
+
+	////view.translate(0.0f, 0.0f, -5.0f);
+	//////view.rotate(rotationQuat);
+	//////project matrix
+	////QMatrix4x4 projection;
+	////projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
+	//////model matrix
+	////QMatrix4x4 model;
+	//////
+
+	////m_shader.setUniformValue("mvp", MVPMatrix);
+
+
+	////m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
+	//const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
+	//glDrawArrays(GL_TRIANGLES, 0, vertsArr->size());
+	////m_shader.release();
+}
+
+void Viewer::drawSphere()
+{
+	// clear buffer
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	// tramsform modelview matrix
+	//glTranslatef(0, 0, -cameraDistance);
+
+	// set material
+	float ambient[] = { 0.5f, 0.5f, 0.5f, 1 };
+	float diffuse[] = { 0.7f, 0.7f, 0.7f, 1 };
+	float specular[] = { 1.0f, 1.0f, 1.0f, 1 };
+	float shininess = 128;
+	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
+	// line color
+	float lineColor[] = { 0.2f, 0.2f, 0.2f, 1 };
+
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//sphere2.drawWithLines(lineColor);
+
+
+	//glBindTexture(GL_TEXTURE_2D, texId);
+	sphere2.draw();
+
+
+}
+
+void Viewer::iniGL()
+{
+	glShadeModel(GL_SMOOTH);                    // shading mathod: GL_SMOOTH or GL_FLAT
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
+
+												// enable /disable features
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+
+	// track material ambient and diffuse from surface color, call it before glEnable(GL_COLOR_MATERIAL)
+	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	//glEnable(GL_COLOR_MATERIAL);
+
+	glClearColor(0, 0, 0, 0);                   // background color
+	glClearStencil(0);                          // clear stencil buffer
+	glClearDepth(1.0f);                         // 0 is near, 1 is far
+	glDepthFunc(GL_LEQUAL);
+
+	//initLights();
+
+
+	// set up light colors (ambient, diffuse, specular)
+	GLfloat lightKa[] = { .3f, .3f, .3f, 1.0f };  // ambient light
+	GLfloat lightKd[] = { .7f, .7f, .7f, 1.0f };  // diffuse light
+	GLfloat lightKs[] = { 1, 1, 1, 1 };           // specular light
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
+
+	// position the light
+	float lightPos[4] = { 0, 0, 1, 0 }; // directional light
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+	glEnable(GL_LIGHT0);                        // MUST enable each light source after configuration
+
 }

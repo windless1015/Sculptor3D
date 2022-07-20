@@ -28,6 +28,7 @@ SET(SCULPTOR3D_SRCS
 	src/view/toolWidget.cpp
 	src/model/meshDataModel.cpp
 	src/utility/makeGeometries.cpp
+	src/utility/sphere.cpp
 )
 
 SET(SCULPTOR3D_HDRS
@@ -38,6 +39,7 @@ SET(SCULPTOR3D_HDRS
 	src/model/meshDataModel.h
 	src/utility/makeGeometries.h
 	src/baseDataTypes.h
+	src/utility/sphere.h
 )
 
 SET(UI_FILES
@@ -78,6 +80,7 @@ target_link_libraries( ${CMAKE_PROJECT_NAME}
   Qt5::Gui
   Qt5::OpenGL
   Qt5::Xml
+  Opengl32.lib
   debug OpenMeshCored OpenMeshToolsd
   optimized OpenMeshCore OpenMeshTools
   debug ${QGLVIEWER_DIR}/lib/QGLViewerd2.lib

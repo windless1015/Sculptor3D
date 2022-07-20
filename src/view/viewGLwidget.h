@@ -7,6 +7,7 @@
 #include <QOpenGLTexture>
 #include "src/baseDataTypes.h"
 #include <QGLViewer\qglviewer.h>
+#include "src/utility/sphere.h"
 
 //class QMenu;
 //class MeshDataModel;
@@ -67,6 +68,8 @@ protected:
 	virtual void init();
 	virtual void postDraw();
 	virtual void draw();
+	virtual void postSelection(const QPoint &point);
+	virtual void drawWithNames();
 	void mousePressEvent(QMouseEvent *event) override;
 
 public:
@@ -77,13 +80,17 @@ public:
 private:
 	void initShader();
 	void drawCornerAxis();
+	void drawSphere(bool isFromFile);
+	void drawSphere();
+	void iniGL();
 private:
 	QOpenGLShaderProgram m_shader;
 	QOpenGLVertexArrayObject m_vao;
 	QOpenGLBuffer m_vbo;
 
 	MeshDataModel* m_meshDataPtr;
-
+	//Sphere sphere2(1.0f, 36, 18);           // radius, sectors, stacks, smooth(default)
+	Sphere sphere2;
 
 	QMenu *m_righMenu;
 	int drawMode{ 0 };
@@ -91,4 +98,8 @@ private:
 	bool enableCullBackFace{ false };
 	bool m_isDrawnCornerAxis;
 
+	QFont m_textFont;
+
+private:
+	qglviewer::Vec orig, dir, selectedPoint;
 };

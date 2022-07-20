@@ -115,8 +115,8 @@ void MainWindow::updateItem(QAction *action)
 
 	}
 	if (action->text() == "NewMesh") {
-		QMessageBox::information(NULL, "Title", "NewMesh",
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		//generate a new sphere
+
 	}
 	if (action->text() == "Save") {
 		QMessageBox::information(NULL, "Title", "Save",
