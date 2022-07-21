@@ -76,7 +76,11 @@ public:
 	void setMeshDataModel(MeshDataModel* mesh);
 	void updateVBOBuffer(const QVector<QVector3D>& vertsArray);
 	void toggleCornerAxisDrawn();
-
+	void toggleDepthTest();
+	void toggleCullBackFace();
+	void toggleFillMode();
+	void toggleLineMode();
+	void togglePointMode();
 private:
 	void initShader();
 	void drawCornerAxis();
@@ -89,10 +93,9 @@ private:
 	QOpenGLBuffer m_vbo;
 
 	MeshDataModel* m_meshDataPtr;
-	//Sphere sphere2(1.0f, 36, 18);           // radius, sectors, stacks, smooth(default)
+
 	Sphere sphere2;
 
-	QMenu *m_righMenu;
 	int drawMode{ 0 };
 	bool enableDepthTest{ false };
 	bool enableCullBackFace{ false };

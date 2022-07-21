@@ -76,15 +76,30 @@ void MainWindow::initializeUI()
 	actionCornerAxis->setIcon(QIcon(":/cornerAxis.png"));
 	ui->menuView->addAction(actionCornerAxis);
 
-	//QHBoxLayout* horizontalLayout = new QHBoxLayout();
-	//horizontalLayout->addWidget(m_toolWidget);
-	//horizontalLayout->addWidget(m_view3DWidget);// 3d widget
-	//horizontalLayout->addWidget(m_infoWidget);
-	////set the stretch factor of 3d widget and infowidget, 3:1, [   ][] or the display mode will be [][]
-	//horizontalLayout->setStretchFactor(m_infoWidget, 1);
-	//horizontalLayout->setStretchFactor(m_view3DWidget, 3);
-	//horizontalLayout->setStretchFactor(m_infoWidget, 1);
-	//ui->centralwidget->setLayout(horizontalLayout);
+	QAction *actionDepthTest = new QAction("Depth Test", m_actionGroup);
+	actionDepthTest->setCheckable(true);
+	actionDepthTest->setIcon(QIcon(":/depthTest.png"));
+	ui->menuModel->addAction(actionDepthTest);
+
+	QAction *actionCullBackFace = new QAction("CullBackFace", m_actionGroup);
+	actionCullBackFace->setCheckable(true);
+	actionCullBackFace->setIcon(QIcon(":/cullBackFace.png"));
+	ui->menuModel->addAction(actionCullBackFace);
+
+	QAction *actionFill = new QAction("Fill", m_actionGroup);
+	actionFill->setCheckable(true);
+	actionFill->setIcon(QIcon(":/fillMode.png"));
+	ui->menuModel->addAction(actionFill);
+
+	QAction *actionLine = new QAction("Line", m_actionGroup);
+	actionLine->setCheckable(true);
+	actionLine->setIcon(QIcon(":/lineMode.png"));
+	ui->menuModel->addAction(actionLine);
+
+	QAction *actionPoint = new QAction("Point", m_actionGroup);
+	actionPoint->setCheckable(true);
+	actionPoint->setIcon(QIcon(":/pointMode.png"));
+	ui->menuModel->addAction(actionPoint);
 
 	setCentralWidget(m_view3DWidget);
 	addDockWidget(Qt::LeftDockWidgetArea, m_toolWidget);
@@ -143,5 +158,20 @@ void MainWindow::updateItem(QAction *action)
 	}
 	if (action->text() == "Corner Axis") {
 		m_view3DWidget->toggleCornerAxisDrawn();
+	}
+	if (action->text() == "Depth Test") {
+		m_view3DWidget->toggleDepthTest();
+	}
+	if (action->text() == "CullBackFace") {
+		m_view3DWidget->toggleCullBackFace();
+	}
+	if (action->text() == "Fill") {
+		m_view3DWidget->toggleFillMode();
+	}
+	if (action->text() == "Line") {
+		m_view3DWidget->toggleLineMode();
+	}
+	if (action->text() == "Point") {
+		m_view3DWidget->togglePointMode();
 	}
 }

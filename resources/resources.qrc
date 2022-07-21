@@ -17,5 +17,10 @@
         <file>plain.png</file>
         <file>fps.png</file>
         <file>cornerAxis.png</file>
+        <file>cullBackFace.png</file>
+        <file>depthTest.png</file>
+        <file>fillMode.png</file>
+        <file>lineMode.png</file>
+        <file>pointMode.png</file>
     </qresource>
 </RCC>

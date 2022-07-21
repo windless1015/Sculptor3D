@@ -324,29 +324,7 @@ Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	m_meshDataPtr = nullptr;
 	m_isDrawnCornerAxis = true;
 
-
-	m_righMenu = new QMenu(this);
-	m_righMenu->addAction("Toggle depth test", [this] {
-		enableDepthTest = !enableDepthTest;
-		update();
-	});
-	m_righMenu->addAction("Toggle cull backface", [this] {
-		enableCullBackFace = !enableCullBackFace;
-		update();
-	});
-	m_righMenu->addAction("Set Fill Mode", [this] {
-		drawMode = 0;
-		update();
-	});
-	m_righMenu->addAction("Set Line Mode", [this] {
-		drawMode = 1;
-		update();
-	});
-	m_righMenu->addAction("Set Point Mode", [this] {
-		drawMode = 2;
-		update();
-	});
-
+	//generate sphere
 	sphere2.set(1.0f, 36, 18);
 }
 
@@ -466,6 +444,29 @@ void Viewer::toggleCornerAxisDrawn()
 {
 	m_isDrawnCornerAxis = !m_isDrawnCornerAxis;
 }
+void Viewer::toggleDepthTest()
+{
+	enableDepthTest = !enableDepthTest;
+}
+
+void Viewer::toggleCullBackFace()
+{
+	enableCullBackFace = !enableCullBackFace;
+}
+void Viewer::toggleFillMode()
+{
+	drawMode = 0;
+}
+
+void Viewer::toggleLineMode()
+{
+	drawMode = 1;
+}
+
+void Viewer::togglePointMode()
+{
+	drawMode = 2;
+}
 
 void Viewer::initShader()
 {
@@ -518,7 +519,6 @@ void Viewer::mousePressEvent(QMouseEvent *event)
 {
 	event->accept();
 	if (event->button() == Qt::RightButton) {
-		m_righMenu->popup(QCursor::pos());
 	}
 	//remember to call parent mousePressEvent function
 	QGLViewer::mousePressEvent(event);
@@ -662,34 +662,36 @@ void Viewer::drawSphere()
 	// tramsform modelview matrix
 	//glTranslatef(0, 0, -cameraDistance);
 
-
-
-	if (enableDepthTest) {
+	if (enableDepthTest) 
+	{
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-	else {
+	else 
+	{
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
+
 	if (enableCullBackFace) {
 		glEnable(GL_CULL_FACE);
 	}
 	else {
 		glDisable(GL_CULL_FACE);
 	}
-	if (drawMode == 0) {
+
+	if (drawMode == 0) 
+	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	else if (drawMode == 1)  //line mode
+	else if (drawMode == 1)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
-	else {
+	else if(drawMode == 2)
+	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		glPointSize(4.0f);
 	}
-
-
 
 
 	// set material
@@ -721,7 +723,7 @@ void Viewer::iniGL()
 	glShadeModel(GL_SMOOTH);                    // shading mathod: GL_SMOOTH or GL_FLAT
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
 
-												// enable /disable features
+	// enable /disable features
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
