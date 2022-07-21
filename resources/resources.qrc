@@ -22,5 +22,7 @@
         <file>fillMode.png</file>
         <file>lineMode.png</file>
         <file>pointMode.png</file>
+        <file>earth.bmp</file>
+        <file>moon.bmp</file>
     </qresource>
 </RCC>

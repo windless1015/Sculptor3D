@@ -4,14 +4,14 @@
 #endif
 
 #include <GL/gl.h>
-
+#include <GL/glu.h>
 
 #include <iostream>
 #include <iomanip>
 #include <cmath>
 #include "sphere.h"
-
-
+//#include <QImage>
+#include "Bmp.h"
 
 // constants //////////////////////////////////////////////////////////////////
 const int MIN_SECTOR_COUNT = 3;
@@ -98,6 +98,81 @@ void Sphere::printSelf() const
               << "TexCoord Count: " << getTexCoordCount() << std::endl;
 }
 
+void Sphere::loadTexture(const char* fileName, bool wrap)
+{
+	//QImage *textureImg = new QImage(QString(fileName));
+	//int width = textureImg->width();
+	//int height = textureImg->height();
+
+	//const unsigned char* data = textureImg->bits();
+	//GLenum type = GL_UNSIGNED_BYTE;    // only allow BMP with 8-bit per channel
+
+									   // We assume the image is 8-bit, 24-bit or 32-bit BMP
+
+
+	Image::Bmp bmp;
+	if (!bmp.read(fileName))
+		return ;     // exit if failed load image
+
+					  // get bmp info
+	int width = bmp.getWidth();
+	int height = bmp.getHeight();
+	const unsigned char* data = bmp.getDataRGB();
+	GLenum type = GL_UNSIGNED_BYTE;    // only allow BMP with 8-bit per channel
+	GLenum format;
+	//int bpp = textureImg->bitPlaneCount();
+	int bpp = bmp.getBitCount();
+	if (bpp == 8)
+		format = GL_LUMINANCE;
+	else if (bpp == 24)
+		format = GL_RGB;
+	else if (bpp == 32)
+		format = GL_RGBA;
+	else
+		return;               // NOT supported, exit
+
+							  // gen texture ID
+	GLuint texture;
+	glGenTextures(1, &texture);
+
+	// set active texture and configure it
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// select modulate to mix texture with color for shading
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	// if wrap is true, the texture wraps over at the edges (repeat)
+	//       ... false, the texture ends at the edges (clamp)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap ? GL_REPEAT : GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// copy texture data
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+
+	// build our texture mipmaps
+	switch (bpp)
+	{
+	case 8:
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 1, width, height, GL_LUMINANCE, type, data);
+		break;
+	case 24:
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, type, data);
+		break;
+	case 32:
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, type, data);
+		break;
+	}
+	//delete textureImg;
+
+	textureId = texture;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

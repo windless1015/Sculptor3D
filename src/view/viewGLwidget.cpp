@@ -712,7 +712,7 @@ void Viewer::drawSphere()
 	//sphere2.drawWithLines(lineColor);
 
 
-	//glBindTexture(GL_TEXTURE_2D, texId);
+	glBindTexture(GL_TEXTURE_2D, sphere2.returnTexureId());
 	sphere2.draw();
 
 
@@ -726,7 +726,7 @@ void Viewer::iniGL()
 	// enable /disable features
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
@@ -741,21 +741,30 @@ void Viewer::iniGL()
 	glClearDepth(1.0f);                         // 0 is near, 1 is far
 	glDepthFunc(GL_LEQUAL);
 
-	//initLights();
 
 
+
+	/******************************************/
+	/* this website can be used to check the light effect and position of light
+	http://www.cs.toronto.edu/~jacobson/phong-demo/
+	reference: http://graphics.cs.cmu.edu/nsp/course/15-462/Spring04/slides/08-shading.pdf
+	*/
 	// set up light colors (ambient, diffuse, specular)
-	GLfloat lightKa[] = { .3f, .3f, .3f, 1.0f };  // ambient light
-	GLfloat lightKd[] = { .7f, .7f, .7f, 1.0f };  // diffuse light
-	GLfloat lightKs[] = { 1, 1, 1, 1 };           // specular light
+	GLfloat lightKa[] = { 0.1f, 0.2f, 0.3f, 1.0f };  // ambient light
+	GLfloat lightKd[] = { .5f, .5f, .5f, 1.0f };  // diffuse light
+	GLfloat lightKs[] = { 0.8f, 0.9f, 1.0f, 1.0f };           // specular light
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
 
 	// position the light
-	float lightPos[4] = { 0, 0, 1, 0 }; // directional light
+	float lightPos[4] = { -2.4, 1.9, 0.4, 0 }; // directional light
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 
 	glEnable(GL_LIGHT0);                        // MUST enable each light source after configuration
 
+
+	sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/earth.bmp", true);
+	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/moon.bmp", true);
+	//sphere2.loadTexture("earth.bmp", true);
 }

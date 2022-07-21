@@ -62,7 +62,9 @@ public:
 
     // debug
     void printSelf() const;
-
+	//add texture loading
+	void loadTexture(const char* fileName, bool wrap = true);
+	int returnTexureId() { return textureId; }
 protected:
 
 private:
@@ -93,6 +95,7 @@ private:
     // interleaved
     std::vector<float> interleavedVertices;
     int interleavedStride;                  // # of bytes to hop to the next vertex (should be 32 bytes)
+	GLuint textureId; //texture id
 
 };
 
