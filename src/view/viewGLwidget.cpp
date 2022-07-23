@@ -323,8 +323,7 @@ Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	restoreStateFromFile();
 	m_meshDataPtr = nullptr;
 	m_isDrawnCornerAxis = true;
-
-
+	newFlag = false;
 }
 
 Viewer::~Viewer()
@@ -355,25 +354,17 @@ void Viewer::init()
 	m_vao.release();*/
 
 	//generate sphere
-	//sphere2.set(1.0f, 36, 18);
 
 	iniGL();
 
-
-	m_textFont.setPointSize(30);
-
-	// Increase the material shininess, so that the difference between
-	// the two versions of the spiral is more visible.
-	/*glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
-	GLfloat specular_color[4] = { 0.8f, 0.8f, 0.8f, 1.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_color);*/
+	//set font size is 50
+	m_textFont.setPointSize(50);
 
 	setAxisIsDrawn(true);
 	setFPSIsDisplayed(true);
 	setGridIsDrawn(true);
 	//setBackgroundColor(QColor(220, 215, 211));
 	setTextIsEnabled(true); //open text display
-
 
 
 	glLineWidth(3.0);
@@ -398,8 +389,6 @@ void Viewer::postSelection(const QPoint &point) {
 	selectedPoint -= 0.01f * dir; // Small offset to make point clearly visible.
 								  // Note that "found" is different from (selectedObjectId()>=0) because of the
 								  // size of the select region.
-
-
 	if (selectedName() == -1)
 		QMessageBox::information(this, "No selection",
 			"No object selected under pixel " +
@@ -417,10 +406,42 @@ void Viewer::postSelection(const QPoint &point) {
 
 void Viewer::draw() 
 {
-	/*drawText(50, 50, "FDU",m_textFont);
-	drawSphere();*/
+	if (enableDepthTest)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else
+	{
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	if (enableCullBackFace) {
+		glEnable(GL_CULL_FACE);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+
+	if (drawMode == 0)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	else if (drawMode == 1)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else if (drawMode == 2)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glPointSize(4.0f);
+	}
+	drawText(50, 50, "FDU",m_textFont);
+
+	if(newFlag)
+		drawSphere();
 	if(m_meshDataPtr)
-		m_meshDataPtr->draw();
+		m_meshDataPtr->draw(0);//0,solid smooth  1,wire frame  2,solid flat  3,points
 }
 
 void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
@@ -437,10 +458,8 @@ void Viewer::setMeshDataModel(MeshDataModel* mesh)
 { 
 	m_meshDataPtr = mesh;
 
-
 	//const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
 	//updateVBOBuffer(*vertsArr);
-	//
 	//update(); // make it effective and opengl will call paintgl
 }
 
@@ -470,6 +489,11 @@ void Viewer::toggleLineMode()
 void Viewer::togglePointMode()
 {
 	drawMode = 2;
+}
+
+void Viewer::newSphere()
+{
+	sphereShape.set(1.0f, 36, 18);
 }
 
 void Viewer::initShader()
@@ -596,67 +620,6 @@ void Viewer::drawCornerAxis()
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 }
 
-void Viewer::drawSphere(bool isFromFile)
-{
-	//if (!m_meshDataPtr || m_meshDataPtr->getMeshVertsArr()->isEmpty())
-	//{
-	//	return;
-	//}
-
-	//if (enableDepthTest) {
-	//	glEnable(GL_DEPTH_TEST);
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//}
-	//else {
-	//	glClear(GL_COLOR_BUFFER_BIT);
-	//}
-	//if (enableCullBackFace) {
-	//	glEnable(GL_CULL_FACE);
-	//}
-	//else {
-	//	glDisable(GL_CULL_FACE);
-	//}
-	//if (drawMode == 0) {
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//}
-	//else if (drawMode == 1)  //line mode
-	//{
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//}
-	//else {
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-	//	glPointSize(4.0f);
-	//}
-
-
-	//QOpenGLVertexArrayObject::Binder vao_bind(&m_vao);
-	//Q_UNUSED(vao_bind); //this equals to m_vao.bind(); and m_vao.release();
-	////m_shader.bind();
-
-	////////view matrix
-
-	///*GLfloat mvp[16];
-	//this->camera()->getModelViewProjectionMatrix(mvp);
-	//QMatrix4x4 MVPMatrix(mvp);
-	//MVPMatrix.normalMatrix();*/
-
-	////view.translate(0.0f, 0.0f, -5.0f);
-	//////view.rotate(rotationQuat);
-	//////project matrix
-	////QMatrix4x4 projection;
-	////projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-	//////model matrix
-	////QMatrix4x4 model;
-	//////
-
-	////m_shader.setUniformValue("mvp", MVPMatrix);
-
-
-	////m_meshVertxArray stores three points of every face, so GL_TRIANGLES will be used because they display the single triangle
-	//const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
-	//glDrawArrays(GL_TRIANGLES, 0, vertsArr->size());
-	////m_shader.release();
-}
 
 void Viewer::drawSphere()
 {
@@ -665,38 +628,6 @@ void Viewer::drawSphere()
 
 	// tramsform modelview matrix
 	//glTranslatef(0, 0, -cameraDistance);
-
-	if (enableDepthTest) 
-	{
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-	else 
-	{
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-
-	if (enableCullBackFace) {
-		glEnable(GL_CULL_FACE);
-	}
-	else {
-		glDisable(GL_CULL_FACE);
-	}
-
-	if (drawMode == 0) 
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-	else if (drawMode == 1)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else if(drawMode == 2)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		glPointSize(4.0f);
-	}
-
 
 	// set material
 	float ambient[] = { 0.5f, 0.5f, 0.5f, 1 };
@@ -715,10 +646,8 @@ void Viewer::drawSphere()
 	//glBindTexture(GL_TEXTURE_2D, 0);
 	//sphere2.drawWithLines(lineColor);
 
-
-	glBindTexture(GL_TEXTURE_2D, sphere2.returnTexureId());
-	sphere2.draw();
-
+	glBindTexture(GL_TEXTURE_2D, sphereShape.returnTexureId());
+	sphereShape.draw();
 
 }
 
@@ -768,7 +697,7 @@ void Viewer::iniGL()
 	glEnable(GL_LIGHT0);                        // MUST enable each light source after configuration
 
 
-	sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/earth.bmp", true);
+	sphereShape.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/earth.bmp", true);
 	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/leather.bmp", true);
 	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/moon.bmp", true);
 	//sphere2.loadTexture("earth.bmp", true);

@@ -13,7 +13,7 @@ public:
 	void MeshDataModel::readMesh(const QString& fname);
 	const std::vector<Point> *getMeshVertsArr() { return m_meshVertxArray; };
 	const Triangle_mesh& getMesh() { return m_triMesh; } ;
-	void draw();
+	void draw(int renderMode);
 	bool set_texture(QImage& _texsrc);
 private:
 	void copyVertsDataToBuff(Triangle_mesh& mesh);
@@ -24,20 +24,11 @@ private:
 private:
 	Triangle_mesh m_triMesh;
 	OpenMesh::IO::Options m_meshOpt; //properties of mesh
-	GLuint                 tex_id_;
+	GLuint                 m_texId;
 	GLint                  tex_mode_;
 	std::vector<Point> *m_meshVertxArray;
-
-protected:
-	void glVertex(const typename Triangle_mesh::VertexHandle _vh);
-	void glVertex(const typename Triangle_mesh::Point& _p);
-	void glNormal(const typename Triangle_mesh::VertexHandle _vh);
-	//void glTexCoord(const typename Triangle_mesh::VertexHandle _vh);
-	void glColor(const typename Triangle_mesh::VertexHandle _vh);
-	// face properties
-	void glNormal(const typename Triangle_mesh::FaceHandle _fh);
-	void glColor(const typename Triangle_mesh::FaceHandle _fh);
-	void glMaterial(const typename Triangle_mesh::FaceHandle _fh,
-			int _f = GL_FRONT_AND_BACK, int _m = GL_DIFFUSE);
+	Triangle_mesh::ConstFaceIter  fIt = m_triMesh.faces_begin();
+	Triangle_mesh::ConstFaceIter fEnd = m_triMesh.faces_end();
+	Triangle_mesh::ConstFaceVertexIter fvIt;
 
 };

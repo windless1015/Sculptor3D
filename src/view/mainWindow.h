@@ -32,6 +32,7 @@ private:
 private:
 	void initializeUI();
 	void cleanMeshData();
+	bool isNewSphere = false;
 private:
 	QActionGroup* m_actionGroup;
 private:

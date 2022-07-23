@@ -81,10 +81,11 @@ public:
 	void toggleFillMode();
 	void toggleLineMode();
 	void togglePointMode();
+	void newSphere();
+	void setNewMeshFlag(int isNew) { newFlag = isNew; };
 private:
 	void initShader();
 	void drawCornerAxis();
-	void drawSphere(bool isFromFile);
 	void drawSphere();
 	void iniGL();
 private:
@@ -94,7 +95,7 @@ private:
 
 	MeshDataModel* m_meshDataPtr;
 
-	Sphere sphere2;
+	Sphere sphereShape;
 
 	int drawMode{ 0 };
 	bool enableDepthTest{ false };
@@ -102,7 +103,7 @@ private:
 	bool m_isDrawnCornerAxis;
 
 	QFont m_textFont;
-
+	bool newFlag;
 private:
 	qglviewer::Vec orig, dir, selectedPoint;
 };

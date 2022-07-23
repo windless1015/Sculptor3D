@@ -129,9 +129,10 @@ void MainWindow::updateItem(QAction *action)
 		m_view3DWidget->setMeshDataModel(m_meshData);// view set the model data pointer
 
 	}
-	if (action->text() == "NewMesh") {
-		//generate a new sphere
-
+	if (action->text() == "NewMesh") 
+	{
+		isNewSphere = !isNewSphere;
+		m_view3DWidget->setNewMeshFlag(isNewSphere);
 	}
 	if (action->text() == "Save") {
 		QMessageBox::information(NULL, "Title", "Save",
