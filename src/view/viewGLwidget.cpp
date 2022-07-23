@@ -324,8 +324,7 @@ Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {
 	m_meshDataPtr = nullptr;
 	m_isDrawnCornerAxis = true;
 
-	//generate sphere
-	sphere2.set(1.0f, 36, 18);
+
 }
 
 Viewer::~Viewer()
@@ -355,6 +354,8 @@ void Viewer::init()
 	m_vbo.release();
 	m_vao.release();*/
 
+	//generate sphere
+	//sphere2.set(1.0f, 36, 18);
 
 	iniGL();
 
@@ -416,9 +417,10 @@ void Viewer::postSelection(const QPoint &point) {
 
 void Viewer::draw() 
 {
-	drawText(50, 50, "FDU",m_textFont);
-	drawSphere();
-	
+	/*drawText(50, 50, "FDU",m_textFont);
+	drawSphere();*/
+	if(m_meshDataPtr)
+		m_meshDataPtr->draw();
 }
 
 void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
@@ -433,7 +435,9 @@ void Viewer::updateVBOBuffer(const QVector<QVector3D>& vertsArray)
 
 void Viewer::setMeshDataModel(MeshDataModel* mesh)
 { 
-	//m_meshDataPtr = mesh;
+	m_meshDataPtr = mesh;
+
+
 	//const QVector<QVector3D>* vertsArr = m_meshDataPtr->getMeshVertsArr();
 	//updateVBOBuffer(*vertsArr);
 	//
@@ -765,6 +769,7 @@ void Viewer::iniGL()
 
 
 	sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/earth.bmp", true);
+	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/leather.bmp", true);
 	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/moon.bmp", true);
 	//sphere2.loadTexture("earth.bmp", true);
 }

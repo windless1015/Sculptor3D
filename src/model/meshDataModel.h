@@ -1,33 +1,43 @@
 #pragma once
 #include <QObject>
 #include "src/baseDataTypes.h"
+#include <vector>
 
-class MeshDataModel : public QObject
+class MeshDataModel
 {
-	Q_OBJECT
 public:
 	MeshDataModel();
 	~MeshDataModel();
 
 public:
 	void MeshDataModel::readMesh(const QString& fname);
-	//const QVector<QVector3D> *getMeshVertsArr() { return m_meshVertxArray; };
+	const std::vector<Point> *getMeshVertsArr() { return m_meshVertxArray; };
 	const Triangle_mesh& getMesh() { return m_triMesh; } ;
+	void draw();
+	bool set_texture(QImage& _texsrc);
 private:
-	//void copyVertsDataToBuff(Triangle_mesh& mesh);
-	void copyVertsDataToBuff(const float* vertices, unsigned int vertsCount);
+	void copyVertsDataToBuff(Triangle_mesh& mesh);
+	//void copyVertsDataToBuff(const float* vertices, unsigned int vertsCount);
 
 private:
 	QString m_meshFilePath;
 private:
 	Triangle_mesh m_triMesh;
-	//QVector<QVector3D> *m_meshVertxArray;
+	OpenMesh::IO::Options m_meshOpt; //properties of mesh
+	GLuint                 tex_id_;
+	GLint                  tex_mode_;
+	std::vector<Point> *m_meshVertxArray;
 
-	/*std::vector<unsigned int> m_indices;
-	std::vector<float> m_vertices;
-	std::vector<float> m_normals;
-	std::vector<float> m_texCoords;
-	std::vector<unsigned int> m_indices;
-	std::vector<unsigned int> m_lineIndices;
-	std::vector<float> m_interleavedVertices;*/
+protected:
+	void glVertex(const typename Triangle_mesh::VertexHandle _vh);
+	void glVertex(const typename Triangle_mesh::Point& _p);
+	void glNormal(const typename Triangle_mesh::VertexHandle _vh);
+	//void glTexCoord(const typename Triangle_mesh::VertexHandle _vh);
+	void glColor(const typename Triangle_mesh::VertexHandle _vh);
+	// face properties
+	void glNormal(const typename Triangle_mesh::FaceHandle _fh);
+	void glColor(const typename Triangle_mesh::FaceHandle _fh);
+	void glMaterial(const typename Triangle_mesh::FaceHandle _fh,
+			int _f = GL_FRONT_AND_BACK, int _m = GL_DIFFUSE);
+
 };

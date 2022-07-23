@@ -89,3 +89,5 @@ target_link_libraries( ${CMAKE_PROJECT_NAME}
   debug ${QGLVIEWER_DIR}/lib/QGLViewerd2.lib
   optimized ${QGLVIEWER_DIR}/lib/QGLViewer2.lib
 )
+
+message(STATUS {"${OpenMesh_INCLUDE_DIRS}"})
