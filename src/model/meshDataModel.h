@@ -30,5 +30,4 @@ private:
 	Triangle_mesh::ConstFaceIter  fIt = m_triMesh.faces_begin();
 	Triangle_mesh::ConstFaceIter fEnd = m_triMesh.faces_end();
 	Triangle_mesh::ConstFaceVertexIter fvIt;
-
 };
