@@ -572,8 +572,10 @@ void Viewer::drawCornerAxis()
 
 	// Axis viewport size, in pixels
 	const int size = 150;
-	glViewport(0, 0, size, size);
-	glScissor(0, 0, size, size);
+	//we can use glViewport to set a specific drawing area
+	glViewport(0, 0, size, size);//width, height
+	//this is just set a box to be colored
+	glScissor(0, 0, size, size);// glclear -- fill with the whole window by a color,
 
 	// The Z-buffer is cleared to make the axis appear over the
 	// original image.
@@ -581,28 +583,31 @@ void Viewer::drawCornerAxis()
 
 	// Tune for best line rendering
 	glDisable(GL_LIGHTING);
-	glLineWidth(3.0);
+	glLineWidth(4.0);
 
-	glMatrixMode(GL_PROJECTION);
+	glMatrixMode(GL_PROJECTION);//set current matrix as the project matrix
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(-1, 1, -1, 1, -1, 1);
+	glOrtho(-1, 1, -1, 1, -1, 1); //this is to 
 
-	glMatrixMode(GL_MODELVIEW);
+	glMatrixMode(GL_MODELVIEW);//change to GL_MODELVIEW and draw the corner axis
 	glPushMatrix();
 	glLoadIdentity();
+
+	//camera is relative to the object, here multiply the camera'orientation matrix and we can 
+	//get to the object itself
 	glMultMatrixd(camera()->orientation().inverse().matrix());
 
 	glBegin(GL_LINES);
-	glColor3f(1.0, 0.0, 0.0);
-	glVertex3f(0.0, 0.0, 0.0);
+	glColor3f(1.0, 0.0, 0.0);//red
+	glVertex3f(0.0, 0.0, 0.0);//origin
 	glVertex3f(1.0, 0.0, 0.0);
 
-	glColor3f(0.0, 1.0, 0.0);
-	glVertex3f(0.0, 0.0, 0.0);
+	glColor3f(0.0, 1.0, 0.0);//green
+	glVertex3f(0.0, 0.0, 0.0);//origin
 	glVertex3f(0.0, 1.0, 0.0);
 
-	glColor3f(0.0, 0.0, 1.0);
+	glColor3f(0.0, 0.0, 1.0);//blue
 	glVertex3f(0.0, 0.0, 0.0);
 	glVertex3f(0.0, 0.0, 1.0);
 	glEnd();
@@ -643,7 +648,7 @@ void Viewer::drawSphere()
 	float lineColor[] = { 0.2f, 0.2f, 0.2f, 1 };
 
 
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	//sphere2.drawWithLines(lineColor);
 
 	glBindTexture(GL_TEXTURE_2D, sphereShape.returnTexureId());
@@ -698,7 +703,7 @@ void Viewer::iniGL()
 
 
 	sphereShape.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/earth.bmp", true);
-	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/leather.bmp", true);
-	//sphere2.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/moon.bmp", true);
-	//sphere2.loadTexture("earth.bmp", true);
+	//sphereShape.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/leather.bmp", true);
+	//sphereShape.loadTexture("D:/projects/Sculptor3D/Sculptor3D/resources/moon.bmp", true);
+	//sphereShape.loadTexture("earth.bmp", true);
 }

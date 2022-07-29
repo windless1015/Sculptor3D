@@ -12,11 +12,9 @@ InfoWidget::InfoWidget(QWidget *parent)
 	QTabWidget*  tabWidget = new QTabWidget;
 
 	QWidget *testWidget1 = new QWidget();
-	tabWidget->addTab(testWidget1, QObject::tr("test1"));
+	tabWidget->addTab(testWidget1, QObject::tr("Mesh Info"));
 	QWidget *testWidget2 = new QWidget();
-	tabWidget->addTab(testWidget2, QObject::tr("test2"));
-	QWidget *testWidget3 = new QWidget();
-	tabWidget->addTab(testWidget3, QObject::tr("test3"));
+	tabWidget->addTab(testWidget2, QObject::tr("Operation Info"));
 	scrollArea->setWidgetResizable(true);
 	scrollArea->setWidget(tabWidget);
 
